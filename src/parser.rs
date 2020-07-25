@@ -1,9 +1,10 @@
+use crate::pipeline::Pipeline;
 use crate::template::*;
 use common::{Ident, Quoted};
 use gobble::*;
 
-parser! { (TFile->Template)
-    star_until_ig(Item,eoi).map(|v|Template{v})
+parser! { (TFile->FlatTemplate)
+    star_until_ig(Item,eoi).map(|v|FlatTemplate{v})
 }
 
 parser! {(Var->VarPart)
@@ -11,13 +12,13 @@ parser! {(Var->VarPart)
         common::UInt.map(|u|VarPart::Num(u)))
 }
 
-parser! {(Pipeline->TPipeline)
+parser! {(Pipe->Pipeline)
     or!(
-        middle('(',ws__(Pipeline),')'),
-        ('$',sep_star(Var,'.')).map(|(_,p)|TPipeline::Var(p)),
-        (Ident,star(ws__(Pipeline))).map(|(c,v)|TPipeline::Command(c,v)),
-        string(Quoted).map(|v|TPipeline::Lit(v)),
-        not(" \t}").plus().map(|v|TPipeline::Lit(v)),
+        middle('(',ws__(Pipe),')'),
+        ('$',sep_star(Var,'.')).map(|(_,p)|Pipeline::Var(p)),
+        (Ident,star(ws__(Pipe))).map(|(c,v)|Pipeline::Command(c,v)),
+        string(Quoted).map(|v|Pipeline::Lit(v)),
+        not(" \t}").plus().map(|v|Pipeline::Lit(v)),
     )
 }
 
@@ -26,20 +27,20 @@ parser! {(StringChar->char)
     Any.one())
 }
 
-parser! {(Assign->(String,TPipeline))
-    (ws_(Ident),ws_("="),ws_(Pipeline)).map(|(a,_,v)|(a,v))
+parser! {(Assign->(String,Pipeline))
+    (ws_(Ident),ws_("="),ws_(Pipe)).map(|(a,_,v)|(a,v))
 }
 
-parser! {(Item->TItem)
+parser! {(Item->FlatItem)
     middle("{{",or!(
-            ws__(keyword("else")).map(|_|TItem::Else),
-            ws__(keyword("/if")).map(|_|TItem::EndIf),
-            ws__(keyword("/for")).map(|_|TItem::EndFor),
-            (ws_(keyword("if")),ws__(Pipeline)).map(|(_,p)|TItem::If(p)),
-            (ws_(keyword("elif")),ws__(Pipeline)).map(|(_,p)|TItem::Elif(p)),
-            (ws_(keyword("for")),ws_(Ident),ws_(Ident),ws_(keyword("in")),ws__(Pipeline)).map(|(_,k,v,_,p)| TItem::For(k,v,p)),
-            (ws_(keyword("let")),sep_plus(Assign,ws_(";"))).map(|(_,v)|TItem::Let(v)),
-            Pipeline.map(|p|TItem::Pipe(p)),
+            ws__(keyword("else")).map(|_|FlatItem::Else),
+            ws__(keyword("/if")).map(|_|FlatItem::EndIf),
+            ws__(keyword("/for")).map(|_|FlatItem::EndFor),
+            (ws_(keyword("if")),ws__(Pipe)).map(|(_,p)|FlatItem::If(p)),
+            (ws_(keyword("elif")),ws__(Pipe)).map(|(_,p)|FlatItem::Elif(p)),
+            (ws_(keyword("for")),ws_(Ident),ws_(Ident),ws_(keyword("in")),ws__(Pipe)).map(|(_,k,v,_,p)| FlatItem::For(k,v,p)),
+            (ws_(keyword("let")),sep_plus(Assign,ws_(";"))).map(|(_,v)|FlatItem::Let(v)),
+            Pipe.map(|p|FlatItem::Pipe(p)),
     ),"}}")
-        .or(chars_until(StringChar,peek(or_ig!("{{",eoi))).map(|(s,_)|TItem::String(s)))
+        .or(chars_until(StringChar,peek(or_ig!("{{",eoi))).map(|(s,_)|FlatItem::String(s)))
 }

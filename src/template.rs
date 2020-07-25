@@ -1,23 +1,39 @@
 use crate::*;
-use err::Error;
 use gobble::Parser;
 use parser::TFile;
+use pipeline::*;
 use scope::Scope;
 
-#[derive(Clone)]
-pub struct Template {
-    pub v: Vec<TItem>,
+#[derive(Clone, Debug)]
+pub struct Block(Vec<TreeItem>);
+
+#[derive(Clone, Debug)]
+pub enum TreeItem {
+    String(String),
+    Pipe(Pipeline),
+    If {
+        cond: Pipeline,
+        yes: Block,
+        No: Option<Block>,
+    },
+    For(String, String, Pipeline),
+    Let(Vec<(String, Pipeline)>),
 }
 
 #[derive(Clone)]
-pub enum TItem {
+pub struct TreeTemplate {
+    pub v: Vec<TreeItem>,
+}
+
+#[derive(Clone,Debug)]
+pub enum FlatItem {
     String(String),
-    Pipe(TPipeline),
-    If(TPipeline),
+    Pipe(Pipeline),
+    If(Pipeline),
     Else,
-    Elif(TPipeline),
-    For(String, String, TPipeline),
-    Let(Vec<(String, TPipeline)>),
+    Elif(Pipeline),
+    For(String, String, Pipeline),
+    Let(Vec<(String, Pipeline)>),
     EndIf,
     EndFor,
 }
@@ -27,14 +43,12 @@ pub enum VarPart {
     Num(usize),
     Id(String),
 }
-#[derive(Clone)]
-pub enum TPipeline {
-    Lit(String),
-    Var(Vec<VarPart>),
-    Command(String, Vec<TPipeline>),
-}
 
-impl Template {
+#[derive(Clone)]
+pub struct FlatTemplate {
+    pub v: Vec<FlatItem>,
+}
+impl TreeTemplate {
     pub fn run<D: Templable, TM: TempManager, FM: FuncManager<D>>(
         &self,
         params: &[D],
@@ -46,8 +60,8 @@ impl Template {
         let mut it = (&self.v).into_iter();
         while let Some(item) = it.next() {
             match item {
-                TItem::String(s) => res.push_str(s),
-                TItem::Let(vec) => {
+                TreeItem::String(s) => res.push_str(&s),
+                TreeItem::Let(vec) => {
                     for (k, v) in vec {
                         let vsolid = v.run(&scope, tm, fm)?;
                         scope.set(k.to_string(), vsolid);
@@ -60,48 +74,52 @@ impl Template {
     }
 }
 
-impl TPipeline {
-    pub fn run<D: Templable, TM: TempManager, FM: FuncManager<D>>(
-        &self,
-        scope: &Scope<D>,
-        tm: &mut TM,
-        fm: &FM,
-    ) -> anyhow::Result<D> {
-        match self {
-            TPipeline::Lit(v) => Ok(D::parse_lit(&v)?),
-            TPipeline::Var(v) => scope
-                .get(v)
-                .map(|v| v.clone())
-                .ok_or(Error::String(format!("No Var by the name {:?}", v)).into()),
-            TPipeline::Command(c, pars) => {
-                if c == "first_true" {
-                    for p in pars {
-                        if let Ok(res) = p.run(scope, tm, fm) {
-                            if let Some(true) = res.as_bool() {
-                                return Ok(res);
-                            }
-                        }
-                    }
-                    return Err(Error::Str("No elements passed the existence test").into());
-                }
-                let mut v = Vec::new();
-                for p in pars {
-                    v.push(p.run(scope, tm, fm)?);
-                }
-                if let Some(in_tp) = tm.get(&c).map(|t| t.clone()) {
-                    Ok(D::parse_lit(&in_tp.run(&v, tm, fm)?)?)
-                } else if let Some(in_f) = fm.get_func(&c) {
-                    Ok(in_f(&v)?)
-                } else {
-                    Err(Error::String(format!("No function or template b the name {}", c)).into())
-                }
-            }
+pub fn flat_basic(fi:FlatItem)->Result<TreeItem,err::Error>{
+    Ok(match fi {
+        FlatItem::String(s)=>TreeItem::String(s),
+        FlatItem::Pipe(p)=>TreeItem::Pipe(p),
+        FlatItem::Let(v)=>TreeItem::Let(v),
+        e=>return Err(err::Error::String(format!("Unexpected {:?}",e))),
+    })
+}
+
+pub fn tt_block<I:Iterator<Item=FlatItem>>(i:&mut I)->Result<TreeTemplate,err::Error>{
+    let mut res = Vec::new();    
+    while let Some(t) =i.next(){
+        res.push(match t {
+        FlatItem::If(p)=>tt_if_yes(p,i)?,
+        FlatItem::For(k, v, p)=>tt_if_yes(p,i)?,//TODO
+        other=>flat_basic(other)?,
+        })
+    }
+    Ok(TreeTemplate{v:res})
+}
+
+pub fn tt_if_yes<I:Iterator<Item=FlatItem>>(cond:Pipeline,i:&mut I)->Result<TreeItem,err::Error>{
+    let mut yes = Vec::new();    
+    while let Some(t) =i.next(){
+        match t {
+            FlatItem::If(p)=>yes.push(tt_if_yes(p,i)?),//TODO
+            FlatItem::For(k, v, p)=>{},//TODO
+            other=>yes.push(flat_basic(other)?),
         }
     }
+    Ok(TreeItem::If{yes})
 }
-impl std::str::FromStr for Template {
+
+pub fn tt_if_no<I:Iterator<Item=FlatItem>>(i:&mut I)->
+
+
+
+impl FlatTemplate {
+    pub fn to_tree(self) -> Result<TreeTemplate, err::Error> {
+        let it =  
+    }
+}
+
+impl std::str::FromStr for FlatTemplate {
     type Err = gobble::StrungError;
-    fn from_str(s: &str) -> Result<Template, Self::Err> {
+    fn from_str(s: &str) -> Result<FlatTemplate, Self::Err> {
         TFile.parse_s(s).map_err(|e| e.strung(s.to_string()))
     }
 }

@@ -1,8 +1,9 @@
 mod err;
 mod parser;
+mod pipeline;
 mod scope;
 mod template;
-use template::{Template, VarPart};
+use template::{TreeTemplate, VarPart};
 
 use std::fmt::{Debug, Display};
 
@@ -48,8 +49,8 @@ pub type TFunc<'a, T: Templable> = &'a dyn Fn(&[T]) -> Result<T, T::FErr>;
 pub type SFunc<'a, T: Templable> = &'a dyn Fn(&T, &[T]) -> Result<T, T::FErr>;
 
 pub trait TempManager {
-    fn insert(&mut self, k: String, t: Template);
-    fn get(&mut self, k: &str) -> Option<&Template>;
+    fn insert(&mut self, k: String, t: TreeTemplate);
+    fn get(&mut self, k: &str) -> Option<&TreeTemplate>;
 }
 
 pub trait FuncManager<T: Templable> {
