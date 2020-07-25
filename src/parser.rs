@@ -40,7 +40,7 @@ parser! {(Item->FlatItem)
             (ws_(keyword("elif")),ws__(Pipe)).map(|(_,p)|FlatItem::Elif(p)),
             (ws_(keyword("for")),ws_(Ident),ws_(Ident),ws_(keyword("in")),ws__(Pipe)).map(|(_,k,v,_,p)| FlatItem::For(k,v,p)),
             (ws_(keyword("let")),sep_plus(Assign,ws_(";"))).map(|(_,v)|FlatItem::Let(v)),
-            Pipe.map(|p|FlatItem::Pipe(p)),
+            ws__(Pipe).map(|p|FlatItem::Pipe(p)),
     ),"}}")
         .or(chars_until(StringChar,peek(or_ig!("{{",eoi))).map(|(s,_)|FlatItem::String(s)))
 }

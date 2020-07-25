@@ -2,7 +2,7 @@ use crate::*;
 use err::Error;
 use scope::Scope;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Pipeline {
     Lit(String),
     Var(Vec<VarPart>),
@@ -37,7 +37,7 @@ impl Pipeline {
                     v.push(p.run(scope, tm, fm)?);
                 }
                 if let Some(in_tp) = tm.get(&c).map(|t| t.clone()) {
-                    Ok(D::parse_lit(in_tp.run(&v, tm, fm)?)?)
+                    Ok(D::parse_lit(&in_tp.run(&v, tm, fm)?)?)
                 } else if let Some(in_f) = fm.get_func(&c) {
                     Ok(in_f(&v)?)
                 } else {

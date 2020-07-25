@@ -3,6 +3,7 @@ mod parser;
 mod pipeline;
 mod scope;
 mod template;
+mod tests;
 use template::{TreeTemplate, VarPart};
 
 use std::fmt::{Debug, Display};
@@ -55,12 +56,4 @@ pub trait TempManager {
 
 pub trait FuncManager<T: Templable> {
     fn get_func(&self, k: &str) -> Option<TFunc<T>>;
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
 }
