@@ -35,10 +35,10 @@ impl<'a, T: Templable> Scope<'a, T> {
         self.get_base(&v[0]).and_then(|r| r.get_var_path(&v[1..]))
     }
 
-    pub fn set(&mut self, k: String, v: T) {
+    pub fn set<K: Into<String>>(&mut self, k: K, v: T) {
         assert!(self.maps.len() > 0);
         let p = self.maps.len() - 1;
-        self.maps[p].insert(k, v);
+        self.maps[p].insert(k.into(), v);
     }
 
     pub fn push(&mut self) {

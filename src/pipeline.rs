@@ -1,6 +1,8 @@
 use crate::*;
 use err::Error;
+use func_man::FuncManager;
 use scope::Scope;
+use temp_man::TempManager;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Pipeline {
@@ -15,6 +17,7 @@ impl Pipeline {
         tm: &mut TM,
         fm: &FM,
     ) -> anyhow::Result<D> {
+        println!("Running = {:?}", self);
         match self {
             Pipeline::Lit(v) => Ok(D::parse_lit(&v)?),
             Pipeline::Var(v) => scope
@@ -34,9 +37,13 @@ impl Pipeline {
                 }
                 let mut v = Vec::new();
                 for p in pars {
-                    v.push(p.run(scope, tm, fm)?);
+                    let pval = p.run(scope, tm, fm)?;
+                    println!("Param value = {:?}", pval);
+                    v.push(pval);
                 }
-                if let Some(in_tp) = tm.get(&c).map(|t| t.clone()) {
+
+                println!("command name = {}", &c);
+                if let Some(in_tp) = tm.get_t(&c).map(|t| t.clone()) {
                     Ok(D::parse_lit(&in_tp.run(&v, tm, fm)?)?)
                 } else if let Some(in_f) = fm.get_func(&c) {
                     Ok(in_f(&v)?)

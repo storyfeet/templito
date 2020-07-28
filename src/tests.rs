@@ -1,6 +1,8 @@
 #![cfg(test)]
+
 use crate::*;
 use pipeline::*;
+use serde_json::Value;
 use std::str::FromStr;
 use template::*;
 
@@ -34,4 +36,31 @@ fn test_fancy() {
         }
         e => panic!("Expected 'if' got {:?}", e),
     };
+}
+
+#[test]
+fn test_run() {
+    let tt = TreeTemplate::from_str(r#"Hello{{cat $0 "go" "dtop"}} "#).unwrap();
+    let data = serde_json::Value::String("GOBBLE".to_string());
+    let fm = func_man::default_func_man();
+    let mut tm = temp_man::BasicTemps::new();
+    let res = tt.run(&[data], &mut tm, &fm).unwrap();
+    assert_eq!(res, "HelloGOBBLEgodtop ");
+}
+
+#[test]
+fn test_if() {
+    let tt = TreeTemplate::from_str(
+        r#"It's a {{if $1}}YES {{cat "from " $0}}{{else}}NO {{cat "from " $0}}{{/if}} too"#,
+    )
+    .unwrap();
+    let data = Value::String("HIM".to_string());
+    let vtrue = Value::Bool(true);
+    let vfalse = Value::Bool(false);
+    let fm = func_man::default_func_man();
+    let mut tm = temp_man::BasicTemps::new();
+    let res = tt.run(&[data.clone(), vtrue], &mut tm, &fm).unwrap();
+    assert_eq!(res, "It's a YES from HIM too");
+    let res2 = tt.run(&[data, vfalse], &mut tm, &fm).unwrap();
+    assert_eq!(res2, "It's a NO from HIM too", "false is not false");
 }

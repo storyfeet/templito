@@ -11,3 +11,5 @@ edition = "2018"
 gobble={path="../gobble/"}
 anyhow = "1.0.31"
 thiserror = "1.0.20"
+#toml = "0.5.6"
+serde_json = "1.0.57"

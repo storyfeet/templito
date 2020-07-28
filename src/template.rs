@@ -1,9 +1,11 @@
 use crate::*;
 use err::*;
+use func_man::FuncManager;
 use gobble::Parser;
 use parser::TFile;
 use pipeline::*;
 use scope::Scope;
+use temp_man::TempManager;
 
 pub type Block = Vec<TreeItem>;
 
@@ -53,6 +55,86 @@ pub enum VarPart {
 pub struct FlatTemplate {
     pub v: Vec<FlatItem>,
 }
+
+pub fn run_block<D: Templable, TM: TempManager, FM: FuncManager<D>>(
+    block: &Block,
+    scope: &mut Scope<D>,
+    tm: &mut TM,
+    fm: &FM,
+) -> anyhow::Result<String> {
+    let mut res = String::new();
+    scope.push();
+    for item in block {
+        res.push_str(&item.run(scope, tm, fm)?);
+    }
+    scope.pop();
+    Ok(res)
+}
+
+impl TreeItem {
+    pub fn run<D: Templable, TM: TempManager, FM: FuncManager<D>>(
+        &self,
+        scope: &mut Scope<D>,
+        tm: &mut TM,
+        fm: &FM,
+    ) -> anyhow::Result<String> {
+        match self {
+            TreeItem::String(s) => Ok(s.clone()),
+            TreeItem::Let(vec) => {
+                for (k, v) in vec {
+                    let vsolid = v.run(&scope, tm, fm)?;
+                    scope.set(k.to_string(), vsolid);
+                }
+                Ok(String::new())
+            }
+            TreeItem::Pipe(p) => {
+                let pres = &p.run(&scope, tm, fm)?;
+                Ok(pres.as_str().map(String::from).unwrap_or(pres.to_string()))
+            }
+            TreeItem::If { cond, yes, no } => {
+                let pres = cond.run(&scope, tm, fm)?;
+                match pres.as_bool() {
+                    Some(true) => run_block(yes, scope, tm, fm),
+                    Some(false) => {
+                        if let Some(n) = no {
+                            run_block(n, scope, tm, fm)
+                        } else {
+                            Ok(String::new())
+                        }
+                    }
+                    None => {
+                        return Err(Error::String(format!("Cannot treat {:?} as Bool", pres)).into())
+                    }
+                }
+            }
+            TreeItem::For { k, v, p, b } => {
+                let looper = p.run(scope, tm, fm)?;
+                let mut res = String::new();
+                if let Some(keys) = looper.keys() {
+                    for kname in keys {
+                        let vval = looper.get_key(&kname).ok_or(Error::Str("Key Missing"))?;
+                        scope.set(k, D::string(&kname));
+                        scope.set(v, vval.clone());
+                        res.push_str(&run_block(&b, scope, tm, fm)?);
+                    }
+                    Ok(res)
+                } else if let Some(len) = looper.len() {
+                    for pos in 0..len {
+                        let vval = looper.get_index(pos).ok_or(Error::Str("Key Missing"))?;
+                        scope.set(k, D::usize(pos));
+                        scope.set(v, vval.clone());
+                        res.push_str(&run_block(&b, scope, tm, fm)?);
+                    }
+                    Ok(res)
+                } else {
+                    //TODO try range object, Not sure how to handle this
+                    Err(Error::String(format!("Cannot loop on {:?}", looper)).into())
+                }
+            }
+        }
+    }
+}
+
 impl TreeTemplate {
     pub fn run<D: Templable, TM: TempManager, FM: FuncManager<D>>(
         &self,
@@ -64,16 +146,7 @@ impl TreeTemplate {
         let mut scope = Scope::new(params);
         let mut it = (&self.v).into_iter();
         while let Some(item) = it.next() {
-            match item {
-                TreeItem::String(s) => res.push_str(&s),
-                TreeItem::Let(vec) => {
-                    for (k, v) in vec {
-                        let vsolid = v.run(&scope, tm, fm)?;
-                        scope.set(k.to_string(), vsolid);
-                    }
-                }
-                _ => {}
-            }
+            res.push_str(&item.run(&mut scope, tm, fm)?);
         }
         Ok(res)
     }

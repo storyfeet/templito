@@ -1,19 +1,34 @@
-mod err;
+pub mod err;
+pub mod func_man;
+pub mod impls;
 mod parser;
 mod pipeline;
 mod scope;
-mod template;
+pub mod temp_man;
+pub mod template;
 mod tests;
 use template::{TreeTemplate, VarPart};
 
+pub type SFunc<T: Templable> = dyn Fn(&T, &[T]) -> Result<T, T::FErr>;
 use std::fmt::{Debug, Display};
 
-pub trait Templable: Sized + PartialEq + Debug + Display + Clone {
+pub trait Templable: 'static + Sized + PartialEq + Debug + Display + Clone {
     type FErr: 'static + std::error::Error + Sync + Send;
     fn parse_lit(s: &str) -> Result<Self, Self::FErr>;
+    fn string(s: &str) -> Self;
+    fn as_str(&self) -> Option<&str> {
+        None
+    }
+    fn bool(b: bool) -> Self;
     fn as_bool(&self) -> Option<bool> {
         None
     }
+
+    fn usize(u: usize) -> Self;
+    fn as_usize(&self) -> Option<usize> {
+        None
+    }
+
     fn keys(&self) -> Option<Vec<String>> {
         None
     }
@@ -26,7 +41,7 @@ pub trait Templable: Sized + PartialEq + Debug + Display + Clone {
     fn get_index<'a>(&'a self, _n: usize) -> Option<&'a Self> {
         None
     }
-    fn get_func<'a>(&'a self, _s: &str) -> Option<SFunc<'a, Self>> {
+    fn get_func<'a>(&'a self, _s: &str) -> Option<&'a SFunc<Self>> {
         None
     }
 
@@ -44,16 +59,4 @@ pub trait Templable: Sized + PartialEq + Debug + Display + Clone {
         self.get_var_part(&v[0])
             .and_then(|p| p.get_var_path(&v[1..]))
     }
-}
-
-pub type TFunc<'a, T: Templable> = &'a dyn Fn(&[T]) -> Result<T, T::FErr>;
-pub type SFunc<'a, T: Templable> = &'a dyn Fn(&T, &[T]) -> Result<T, T::FErr>;
-
-pub trait TempManager {
-    fn insert(&mut self, k: String, t: TreeTemplate);
-    fn get(&mut self, k: &str) -> Option<&TreeTemplate>;
-}
-
-pub trait FuncManager<T: Templable> {
-    fn get_func(&self, k: &str) -> Option<TFunc<T>>;
 }

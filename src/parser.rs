@@ -12,12 +12,18 @@ parser! {(Var->VarPart)
         common::UInt.map(|u|VarPart::Num(u)))
 }
 
+parser! {(SingleQuotes->String)
+    ('\'',chars_until(or!(not("\'\\").one(),"\\'".asv('\''),"\\\\".asv('\\')),'\''))
+        .map(|(_,(v,_))|v)
+}
+
 parser! {(Pipe->Pipeline)
     or!(
         middle('(',ws__(Pipe),')'),
         ('$',sep_star(Var,'.')).map(|(_,p)|Pipeline::Var(p)),
         (Ident,star(ws__(Pipe))).map(|(c,v)|Pipeline::Command(c,v)),
         string(Quoted).map(|v|Pipeline::Lit(v)),
+        SingleQuotes.map(|v|Pipeline::Lit(v)),
         not(" \t}").plus().map(|v|Pipeline::Lit(v)),
     )
 }
