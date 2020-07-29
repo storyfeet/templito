@@ -5,7 +5,6 @@ use std::str::FromStr;
 impl Templable for Value {
     type FErr = serde_json::Error;
     fn parse_lit(s: &str) -> Result<Self, Self::FErr> {
-        println!("PARSE_LIT {}", s);
         Value::from_str(s)
     }
     fn string(s: &str) -> Self {

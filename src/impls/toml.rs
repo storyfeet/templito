@@ -1,0 +1,96 @@
+use crate::*;
+use err::WrapErr;
+use std::str::FromStr;
+use toml::Value;
+
+impl Templable for Value {
+    type FErr = WrapErr<toml::de::Error>;
+    fn parse_lit(s: &str) -> Result<Self, Self::FErr> {
+        let pstr = format!("x={}\n", s);
+        match Value::from_str(&pstr) {
+            Ok(Value::Table(m)) => m.get("x").map(|v| v.clone()).ok_or(WrapErr {
+                e: None,
+                s: "No x in parse result".to_string(),
+            }),
+            Ok(_) => Err(WrapErr {
+                e: None,
+                s: "Toml Parse result not a Table".to_string(),
+            }),
+            Err(e) => Err(WrapErr {
+                e: Some(e),
+                s: "Toml could not be parsed".to_string(),
+            }),
+        }
+    }
+    fn string(s: &str) -> Self {
+        Value::String(s.to_string())
+    }
+    fn bool(b: bool) -> Self {
+        Value::Boolean(b)
+    }
+    fn as_bool(&self) -> Option<bool> {
+        match self {
+            Value::Boolean(b) => Some(*b),
+            _ => None, //TODO consider other bits
+        }
+    }
+
+    fn as_str(&self) -> Option<&str> {
+        match self {
+            Value::String(ref s) => Some(s),
+            _ => None,
+        }
+    }
+    fn usize(u: usize) -> Self {
+        Value::Integer(u as i64)
+    }
+
+    fn keys(&self) -> Option<Vec<String>> {
+        match self {
+            Value::Table(m) => Some(m.keys().map(|v| v.to_string()).collect()),
+            _ => None,
+        }
+    }
+
+    fn get_key<'a>(&'a self, k: &str) -> Option<&'a Self> {
+        match self {
+            Value::Table(m) => m.get(k),
+            _ => None,
+        }
+    }
+
+    fn len(&self) -> Option<usize> {
+        match self {
+            Value::Array(a) => Some(a.len()),
+            _ => None,
+        }
+    }
+
+    fn get_index<'a>(&'a self, n: usize) -> Option<&'a Self> {
+        match self {
+            Value::Array(a) => a.get(n),
+            _ => None,
+        }
+    }
+}
+
+#[cfg(test)]
+mod toml_test {
+    use super::*;
+    use crate::*;
+    use pipeline::*;
+    use std::str::FromStr;
+    use template::*;
+    #[test]
+    fn test_toml_values_come_out_correct() {
+        let tt = TreeTemplate::from_str(
+            r#"{{let n='5';b='false';s="hat"}}{{if $b}}BTRUEERROR{{else}}{{$n}}>{{$0}}*{{$s}}{{/if}}"#,
+        )
+        .unwrap();
+        let data = toml::Value::String("GOBBLE".to_string());
+        let fm = func_man::default_func_man();
+        let mut tm = temp_man::BasicTemps::new();
+        let res = tt.run(&[data], &mut tm, &fm).unwrap();
+        assert_eq!(res, "5>GOBBLE*hat");
+    }
+}

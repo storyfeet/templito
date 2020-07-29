@@ -64,3 +64,22 @@ fn test_if() {
     let res2 = tt.run(&[data, vfalse], &mut tm, &fm).unwrap();
     assert_eq!(res2, "It's a NO from HIM too", "false is not false");
 }
+
+#[test]
+fn test_for_array() {
+    let tt =
+        TreeTemplate::from_str(r#"Looping {{for k y in $0}}(k={{$k}},y={{$y}}){{/for}}"#).unwrap();
+    let data = Value::Array(vec![
+        Value::String("zero".to_string()),
+        Value::String("one".to_string()),
+        Value::String("two".to_string()),
+        Value::String("three".to_string()),
+    ]);
+    let mut tm = temp_man::BasicTemps::new();
+    let fm = func_man::default_func_man();
+    let res = tt.run(&[data], &mut tm, &fm).unwrap();
+    assert_eq!(
+        res,
+        "Looping (k=0,y=zero)(k=1,y=one)(k=2,y=two)(k=3,y=three)"
+    );
+}
