@@ -28,6 +28,8 @@ parser! {(Pipe->Pipeline)
     )
 }
 
+parser! {(StringItem->String)}
+
 parser! {(StringChar->char)
     or("\\{".asv('{'),
     Any.one())
