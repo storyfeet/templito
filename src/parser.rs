@@ -28,11 +28,12 @@ parser! {(Pipe->Pipeline)
     )
 }
 
-parser! {(StringItem->String)}
-
-parser! {(StringChar->char)
-    or("\\{".asv('{'),
-    Any.one())
+parser! {(StringItem->String)
+    or!(
+        ("\\",("\t \n\r").plus(),maybe("\\")).map(|_|String::new()),
+        ("\\",Any.one()).map(|(_,c)|c.to_string()),
+        not("{\\").plus(),
+    )
 }
 
 parser! {(Assign->(String,Pipeline))
@@ -50,5 +51,5 @@ parser! {(Item->FlatItem)
             (ws_(keyword("let")),sep_plus(Assign,ws_(";"))).map(|(_,v)|FlatItem::Let(v)),
             ws__(Pipe).map(|p|FlatItem::Pipe(p)),
     ),"}}")
-        .or(chars_until(StringChar,peek(or_ig!("{{",eoi))).map(|(s,_)|FlatItem::String(s)))
+        .or(strings_plus_until(StringItem,peek(or_ig!("{{",eoi))).map(|(s,_)|FlatItem::String(s)))
 }

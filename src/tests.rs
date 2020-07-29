@@ -83,3 +83,22 @@ fn test_for_array() {
         "Looping (k=0,y=zero)(k=1,y=one)(k=2,y=two)(k=3,y=three)"
     );
 }
+
+#[test]
+fn test_first_sel() {
+    let tt = TreeTemplate::from_str(
+        r#"{{b_sel $0 "MOO", "NOO"}} is\    
+        \ {{n_sel $1 'null' $10 $2 $3}} {{first_valid $10 'null' $3}} "#,
+    )
+    .unwrap();
+    let d2 = Value::Number(serde_json::value::Number::from(2));
+    let dtrue = Value::Bool(true);
+
+    let r1 = Value::String("HELLO".to_string());
+    let r2 = Value::String("GOODBYE".to_string());
+
+    let mut tm = temp_man::BasicTemps::new();
+    let fm = func_man::default_func_man();
+    let res = tt.run(&[dtrue, d2, r1, r2], &mut tm, &fm).unwrap();
+    assert_eq!(res, "MOO is HELLO GOODBYE ");
+}

@@ -34,6 +34,13 @@ impl Templable for Value {
             _ => None, //TODO consider other bits
         }
     }
+    fn is_valid(&self) -> bool {
+        match self {
+            Value::Table(t) => t.len() == 0,
+            Value::Array(a) => a.len() == 0,
+            _ => true,
+        }
+    }
 
     fn as_str(&self) -> Option<&str> {
         match self {
@@ -43,6 +50,12 @@ impl Templable for Value {
     }
     fn usize(u: usize) -> Self {
         Value::Integer(u as i64)
+    }
+    fn as_usize(&self) -> Option<usize> {
+        match self {
+            Value::Integer(n) => Some(*n as usize),
+            _ => None,
+        }
     }
 
     fn keys(&self) -> Option<Vec<String>> {

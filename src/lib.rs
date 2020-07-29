@@ -24,6 +24,10 @@ pub trait Templable: 'static + Sized + PartialEq + Debug + Display + Clone {
         None
     }
 
+    fn is_valid(&self) -> bool {
+        true
+    }
+
     fn usize(u: usize) -> Self;
     fn as_usize(&self) -> Option<usize> {
         None

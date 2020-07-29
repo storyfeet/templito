@@ -19,6 +19,12 @@ impl Templable for Value {
             _ => None, //TODO consider other bits
         }
     }
+    fn is_valid(&self) -> bool {
+        match self {
+            Value::Null => false,
+            _ => true,
+        }
+    }
 
     fn as_str(&self) -> Option<&str> {
         match self {
@@ -28,6 +34,12 @@ impl Templable for Value {
     }
     fn usize(u: usize) -> Self {
         Value::Number(serde_json::Number::from(u))
+    }
+    fn as_usize(&self) -> Option<usize> {
+        match self {
+            Value::Number(n) => n.as_u64().map(|n| n as usize),
+            _ => None,
+        }
     }
 
     fn keys(&self) -> Option<Vec<String>> {
