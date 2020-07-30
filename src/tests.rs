@@ -87,8 +87,8 @@ fn test_for_array() {
 #[test]
 fn test_first_sel() {
     let tt = TreeTemplate::from_str(
-        r#"{{b_sel $0 "MOO", "NOO"}} is\    
-        \ {{n_sel $1 'null' $10 $2 $3}} {{first_valid $10 'null' $3}} "#,
+        r#"{{select $0 "MOO", "NOO"}} is\    
+        \ {{select $1 'null' $10 $2 $3}} {{first_valid $10 'null' $3}} "#,
     )
     .unwrap();
     let d2 = Value::Number(serde_json::value::Number::from(2));

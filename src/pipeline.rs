@@ -28,31 +28,21 @@ pub fn run_command<D: Templable, TM: TempManager, FM: FuncManager<D>>(
         }
         return Err(Error::Str("No elements passed the existence test").into());
     }
-    if cname == "b_sel" {
-        if args.len() < 3 {
-            return Err(Error::Str("b_sel requires at least 1 test and 2 possible values").into());
-        }
-        let bval = args[0].run(scope, tm, fm)?;
-        let bval = bval
-            .as_bool()
-            .ok_or(Error::String(format!("As Bool failed on {}", bval)))?;
-        match bval {
-            true => return args[1].run(scope, tm, fm),
-            false => return args[2].run(scope, tm, fm),
-        }
-    }
-    if cname == "n_sel" {
+    if cname == "select" {
         if args.len() < 3 {
             return Err(Error::Str("n_sel requires at least 1 test and 2 possible values").into());
         }
         let bval = args[0].run(scope, tm, fm)?;
-        let bval = bval
-            .as_usize()
-            .ok_or(Error::String(format!("As Bool failed on {}", bval)))?
-            + 1;
+        let bval = if let Some(n) = bval.as_usize() {
+            n + 1
+        } else if let Some(b) = bval.as_bool() {
+            2 - (b as usize)
+        } else {
+            return Err(Error::String(format!("As Bool failed on {}", bval)).into());
+        };
 
         if bval > args.len() {
-            return Err(Error::Str("n_sel first param must return a value less than the length of the rest of the args").into());
+            return Err(Error::Str("select first param must choose return a value less than the length of the rest of the args").into());
         }
 
         return args[bval].run(scope, tm, fm);

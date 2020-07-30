@@ -1,8 +1,9 @@
 use crate::*;
+use funcs::WithFuncs;
 use std::collections::HashMap;
 
-pub type TFunc<T: Templable> = dyn Fn(&[T]) -> Result<T, T::FErr>;
-pub type TFn<T: Templable> = fn(&[T]) -> Result<T, T::FErr>;
+pub type TFunc<T> = dyn Fn(&[T]) -> anyhow::Result<T>;
+pub type TFn<T> = fn(&[T]) -> anyhow::Result<T>;
 
 pub trait FuncManager<T: Templable> {
     fn get_func(&self, k: &str) -> Option<&TFunc<T>>;
@@ -38,20 +39,7 @@ impl<T: 'static + Templable> FuncAdder<T> for BasicFuncs<T> {
 }
 
 pub fn default_func_man<T: Templable>() -> BasicFuncs<T> {
-    BasicFuncs::new().with_func("cat", cat())
+    BasicFuncs::new().with_basics()
 }
 
 //Section for Common Funcs
-
-fn cat<T: Templable>() -> Box<TFunc<T>> {
-    Box::new(|l: &[T]| -> Result<T, T::FErr> {
-        let mut r_str = String::new();
-        for v in l {
-            match &v.as_str() {
-                Some(s) => r_str.push_str(s),
-                None => r_str.push_str(&v.to_string()),
-            }
-        }
-        Ok(T::string(&r_str))
-    })
-}

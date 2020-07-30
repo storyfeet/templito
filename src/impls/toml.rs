@@ -1,25 +1,18 @@
 use crate::*;
-use err::WrapErr;
+use err::*;
 use std::str::FromStr;
 use toml::Value;
 
 impl Templable for Value {
-    type FErr = WrapErr<toml::de::Error>;
-    fn parse_lit(s: &str) -> Result<Self, Self::FErr> {
+    fn parse_lit(s: &str) -> anyhow::Result<Self> {
         let pstr = format!("x={}\n", s);
         match Value::from_str(&pstr) {
-            Ok(Value::Table(m)) => m.get("x").map(|v| v.clone()).ok_or(WrapErr {
-                e: None,
-                s: "No x in parse result".to_string(),
-            }),
-            Ok(_) => Err(WrapErr {
-                e: None,
-                s: "Toml Parse result not a Table".to_string(),
-            }),
-            Err(e) => Err(WrapErr {
-                e: Some(e),
-                s: "Toml could not be parsed".to_string(),
-            }),
+            Ok(Value::Table(m)) => m
+                .get("x")
+                .map(|v| v.clone())
+                .ok_or(ea_str("No x in parse result")),
+            Ok(_) => Err(ea_str("Toml parse result not a table")),
+            Err(e) => Err(e.into()),
         }
     }
     fn string(s: &str) -> Self {

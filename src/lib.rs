@@ -1,5 +1,6 @@
 pub mod err;
 pub mod func_man;
+pub mod funcs;
 pub mod impls;
 mod parser;
 mod pipeline;
@@ -9,12 +10,12 @@ pub mod template;
 mod tests;
 use template::{TreeTemplate, VarPart};
 
-pub type SFunc<T: Templable> = dyn Fn(&T, &[T]) -> Result<T, T::FErr>;
+pub type SFunc<T> = dyn Fn(&T, &[T]) -> anyhow::Result<T>;
 use std::fmt::{Debug, Display};
 
-pub trait Templable: 'static + Sized + PartialEq + Debug + Display + Clone {
-    type FErr: 'static + std::error::Error + Sync + Send;
-    fn parse_lit(s: &str) -> Result<Self, Self::FErr>;
+pub trait Templable: 'static + Sized + PartialEq + PartialOrd + Debug + Display + Clone {
+    //type FErr: 'static + std::error::Error + Sync + Send;
+    fn parse_lit(s: &str) -> anyhow::Result<Self>;
     fn string(s: &str) -> Self;
     fn as_str(&self) -> Option<&str> {
         None
