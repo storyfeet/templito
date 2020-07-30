@@ -1,14 +1,29 @@
 //! The section about making providing functions for the templates
 
 use crate::*;
-use err::*;
 use func_man::*;
+
+mod bools;
 
 pub trait WithFuncs<T: Templable>: Sized {
     fn with_f<K: Into<String>>(self, k: K, f: Box<TFunc<T>>) -> Self;
 
-    fn with_basics(self) -> Self {
-        self.with_f("cat", cat()).with_f("eq", eq())
+    fn with_defaults(self) -> Self {
+        self.with_bools().with_strings()
+    }
+
+    fn with_strings(self) -> Self {
+        self.with_f("cat", cat())
+    }
+
+    fn with_bools(self) -> Self {
+        self.with_f("eq", bools::eq())
+            .with_f("gt", bools::gt())
+            .with_f("gte", bools::gte())
+            .with_f("lt", bools::lt())
+            .with_f("lte", bools::lte())
+            .with_f("and", bools::and())
+            .with_f("or", bools::or())
     }
 }
 
@@ -28,33 +43,5 @@ fn cat<T: Templable>() -> Box<TFunc<T>> {
             }
         }
         Ok(T::string(&r_str))
-    })
-}
-
-fn eq<T: Templable>() -> Box<TFunc<T>> {
-    Box::new(|l| {
-        if l.len() == 0 {
-            return Err(ea_str("Not enough args for eq"));
-        }
-        for a in &l[1..] {
-            if *a != l[0] {
-                return Ok(T::bool(false));
-            }
-        }
-        Ok(T::bool(true))
-    })
-}
-
-fn gt<T: Templable>() -> Box<TFunc<T>> {
-    Box::new(|l| {
-        if l.len() == 0 {
-            return Err(ea_str("Not enough args for eq"));
-        }
-        for a in &l[1..] {
-            if !(l[0] > a) {
-                return Ok(T::bool(false));
-            }
-        }
-        Ok(T::bool(true))
     })
 }

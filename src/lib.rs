@@ -13,7 +13,7 @@ use template::{TreeTemplate, VarPart};
 pub type SFunc<T> = dyn Fn(&T, &[T]) -> anyhow::Result<T>;
 use std::fmt::{Debug, Display};
 
-pub trait Templable: 'static + Sized + PartialEq + PartialOrd + Debug + Display + Clone {
+pub trait Templable: 'static + Sized + PartialEq + Debug + Display + Clone {
     //type FErr: 'static + std::error::Error + Sync + Send;
     fn parse_lit(s: &str) -> anyhow::Result<Self>;
     fn string(s: &str) -> Self;
@@ -64,4 +64,6 @@ pub trait Templable: 'static + Sized + PartialEq + PartialOrd + Debug + Display 
         self.get_var_part(&v[0])
             .and_then(|p| p.get_var_path(&v[1..]))
     }
+
+    fn compare(&self, b: &Self) -> Option<std::cmp::Ordering>;
 }

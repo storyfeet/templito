@@ -69,4 +69,12 @@ impl Templable for Value {
             _ => None,
         }
     }
+
+    fn compare(&self, b: &Self) -> Option<std::cmp::Ordering> {
+        match (self, b) {
+            (Value::String(sa), Value::String(sb)) => sa.partial_cmp(sb),
+            (Value::Number(na), Value::Number(nb)) => (na.as_f64()).partial_cmp(&nb.as_f64()),
+            _ => return None,
+        }
+    }
 }

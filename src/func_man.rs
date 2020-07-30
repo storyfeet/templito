@@ -39,7 +39,7 @@ impl<T: 'static + Templable> FuncAdder<T> for BasicFuncs<T> {
 }
 
 pub fn default_func_man<T: Templable>() -> BasicFuncs<T> {
-    BasicFuncs::new().with_basics()
+    BasicFuncs::new().with_defaults()
 }
 
 //Section for Common Funcs
