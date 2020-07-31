@@ -1,5 +1,6 @@
 use crate::*;
 use err::*;
+use func_man::TFunc;
 use std::str::FromStr;
 use toml::Value;
 
@@ -83,6 +84,70 @@ impl Templable for Value {
             (Value::String(sa), Value::String(sb)) => sa.partial_cmp(sb),
             _ => None,
         }
+    }
+
+    fn get_func<'a>(&'a self, s: &str) -> Option<&'a TFunc<Self>> {
+        match s {
+            "add" => Some(&|l| super::fold(l, add)),
+            "sub" => Some(&|l| super::fold(l, sub)),
+            "mul" => Some(&|l| super::fold(l, mul)),
+            "div" => Some(&|l| super::fold(l, div)),
+            "mod" => Some(&|l| super::fold(l, modulo)),
+            _ => None,
+        }
+    }
+}
+
+fn add(a: Value, b: &Value) -> anyhow::Result<Value> {
+    match (a, b) {
+        (Value::Integer(a), Value::Integer(b)) => Ok(Value::Integer(a + b)),
+        (Value::Integer(a), Value::Float(b)) => Ok(Value::Float((a as f64) + b)),
+        (Value::Float(a), Value::Integer(b)) => Ok(Value::Float(a + (*b as f64))),
+        (Value::Float(a), Value::Float(b)) => Ok(Value::Float(a + b)),
+        //TODO consider allowing Date tweaks
+        _ => Err(ea_str("Cannot add non numeric values")),
+    }
+}
+
+fn sub(a: Value, b: &Value) -> anyhow::Result<Value> {
+    match (a, b) {
+        (Value::Integer(a), Value::Integer(b)) => Ok(Value::Integer(a - b)),
+        (Value::Integer(a), Value::Float(b)) => Ok(Value::Float((a as f64) - b)),
+        (Value::Float(a), Value::Integer(b)) => Ok(Value::Float(a - (*b as f64))),
+        (Value::Float(a), Value::Float(b)) => Ok(Value::Float(a - b)),
+        //TODO consider allowing Date tweaks
+        _ => Err(ea_str("Cannot sub non numeric values")),
+    }
+}
+
+fn mul(a: Value, b: &Value) -> anyhow::Result<Value> {
+    match (a, b) {
+        (Value::Integer(a), Value::Integer(b)) => Ok(Value::Integer(a * b)),
+        (Value::Integer(a), Value::Float(b)) => Ok(Value::Float((a as f64) * b)),
+        (Value::Float(a), Value::Integer(b)) => Ok(Value::Float(a * (*b as f64))),
+        (Value::Float(a), Value::Float(b)) => Ok(Value::Float(a * b)),
+        //TODO consider allowing Date tweaks
+        _ => Err(ea_str("Cannot mul non numeric values")),
+    }
+}
+fn div(a: Value, b: &Value) -> anyhow::Result<Value> {
+    match (a, b) {
+        (Value::Integer(a), Value::Integer(b)) => Ok(Value::Integer(a / b)),
+        (Value::Integer(a), Value::Float(b)) => Ok(Value::Float((a as f64) / b)),
+        (Value::Float(a), Value::Integer(b)) => Ok(Value::Float(a / (*b as f64))),
+        (Value::Float(a), Value::Float(b)) => Ok(Value::Float(a / b)),
+        //TODO consider allowing Date tweaks
+        _ => Err(ea_str("Cannot div non numeric values")),
+    }
+}
+fn modulo(a: Value, b: &Value) -> anyhow::Result<Value> {
+    match (a, b) {
+        (Value::Integer(a), Value::Integer(b)) => Ok(Value::Integer(a % b)),
+        (Value::Integer(a), Value::Float(b)) => Ok(Value::Float((a as f64) % b)),
+        (Value::Float(a), Value::Integer(b)) => Ok(Value::Float(a % (*b as f64))),
+        (Value::Float(a), Value::Float(b)) => Ok(Value::Float(a % b)),
+        //TODO consider allowing Date tweaks
+        _ => Err(ea_str("Cannot sub non numeric values")),
     }
 }
 

@@ -1,7 +1,7 @@
 use crate::*;
 use err::*;
 use func_man::TFunc;
-use serde_json::Value;
+use serde_json::{Number, Value};
 use std::str::FromStr;
 
 impl Templable for Value {
@@ -82,20 +82,116 @@ impl Templable for Value {
     fn get_func<'a>(&'a self, k: &str) -> Option<&'a TFunc<Self>> {
         match k {
             "to_json" => Some(&to_json),
-            "add"=> Some(&|l| super::fold(l, add)),
+            "add" => Some(&|l| super::fold(l, add)),
+            "sub" => Some(&|l| super::fold(l, sub)),
+            "mul" => Some(&|l| super::fold(l, mul)),
+            "div" => Some(&|l| super::fold(l, div)),
+            "mod" => Some(&|l| super::fold(l, modulo)),
             _ => None,
         }
     }
 }
 
-fn add(a:Value,b:&Value)->anyhow::Result<Value>{
-    match (a,b){
-        (Value::Number(an),Value::Number(bn))=> 
-            if (an.is_f64() || bn.is_f64())
-                Ok(Value::Number)
+fn nums_f(a: &Number, b: &Number) -> Option<(f64, f64)> {
+    match (a.is_f64() || b.is_f64(), a.as_f64(), b.as_f64()) {
+        (true, Some(a), Some(b)) => Some((a, b)),
+        _ => None,
+    }
+}
+fn nums_i(a: &Number, b: &Number) -> Option<(i64, i64)> {
+    match (a.as_i64(), b.as_i64()) {
+        (Some(a), Some(b)) => Some((a, b)),
+        _ => None,
+    }
+}
 
-            Ok(Value::Number(an+bn)),
-        _=>
+fn nums_u(a: &Number, b: &Number) -> Option<(u64, u64)> {
+    match (a.as_u64(), b.as_u64()) {
+        (Some(a), Some(b)) => Some((a, b)),
+        _ => None,
+    }
+}
+
+fn add(a: Value, b: &Value) -> anyhow::Result<Value> {
+    match (a, b) {
+        (Value::Number(ref an), Value::Number(bn)) => {
+            if let Some((af, bf)) = nums_f(an, bn) {
+                Ok(Value::from(af + bf))
+            } else if let Some((ai, bi)) = nums_i(an, bn) {
+                Ok(Value::from(ai + bi))
+            } else if let Some((au, bu)) = nums_u(an, bn) {
+                Ok(Value::from(au + bu))
+            } else {
+                Err(ea_str("Nums could not be reconciled for adding"))
+            }
+        }
+        _ => Err(ea_str("Add only works on numbers Operator")),
+    }
+}
+fn sub(a: Value, b: &Value) -> anyhow::Result<Value> {
+    match (a, b) {
+        (Value::Number(ref an), Value::Number(bn)) => {
+            if let Some((af, bf)) = nums_f(an, bn) {
+                Ok(Value::from(af - bf))
+            } else if let Some((ai, bi)) = nums_i(an, bn) {
+                Ok(Value::from(ai - bi))
+            } else if let Some((au, bu)) = nums_u(an, bn) {
+                Ok(Value::from(au - bu))
+            } else {
+                Err(ea_str("Nums could not be reconciled for adding"))
+            }
+        }
+        _ => Err(ea_str("Add only works on numbers Operator")),
+    }
+}
+fn div(a: Value, b: &Value) -> anyhow::Result<Value> {
+    match (a, b) {
+        (Value::Number(ref an), Value::Number(bn)) => {
+            if let Some((af, bf)) = nums_f(an, bn) {
+                Ok(Value::from(af / bf))
+            } else if let Some((ai, bi)) = nums_i(an, bn) {
+                Ok(Value::from(ai / bi))
+            } else if let Some((au, bu)) = nums_u(an, bn) {
+                Ok(Value::from(au / bu))
+            } else {
+                Err(ea_str("Nums could not be reconciled for adding"))
+            }
+        }
+        _ => Err(ea_str("Add only works on numbers Operator")),
+    }
+}
+
+fn mul(a: Value, b: &Value) -> anyhow::Result<Value> {
+    match (a, b) {
+        (Value::Number(ref an), Value::Number(bn)) => {
+            if let Some((af, bf)) = nums_f(an, bn) {
+                Ok(Value::from(af * bf))
+            } else if let Some((ai, bi)) = nums_i(an, bn) {
+                Ok(Value::from(ai * bi))
+            } else if let Some((au, bu)) = nums_u(an, bn) {
+                Ok(Value::from(au * bu))
+            } else {
+                Err(ea_str("Nums could not be reconciled for adding"))
+            }
+        }
+        _ => Err(ea_str("Add only works on numbers Operator")),
+    }
+}
+
+fn modulo(a: Value, b: &Value) -> anyhow::Result<Value> {
+    match (a, b) {
+        (Value::Number(ref an), Value::Number(bn)) => {
+            if let Some((af, bf)) = nums_f(an, bn) {
+                Ok(Value::from(af % bf))
+            } else if let Some((ai, bi)) = nums_i(an, bn) {
+                Ok(Value::from(ai % bi))
+            } else if let Some((au, bu)) = nums_u(an, bn) {
+                Ok(Value::from(au % bu))
+            } else {
+                Err(ea_str("Nums could not be reconciled for adding"))
+            }
+        }
+        _ => Err(ea_str("Add only works on numbers Operator")),
     }
 }
 

@@ -23,6 +23,10 @@ pub fn ea_res<O, E: 'static + std::error::Error + Sync + Send>(
     r.map_err(|e| e.into())
 }
 
+pub fn ea_op<O>(o: Option<O>, s: &'static str) -> anyhow::Result<O> {
+    o.ok_or(Error::Str(s).into())
+}
+
 #[derive(Debug, Clone, Error)]
 #[error("{:?}, {}",.e,.s)]
 pub struct WrapErr<E: std::error::Error + Debug + Clone> {

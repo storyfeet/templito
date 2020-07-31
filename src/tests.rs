@@ -116,3 +116,39 @@ fn test_for_json_own_method() {
     let res = tt.run(&[data], &mut tm, &fm).unwrap();
     assert_eq!(res, r#"JRES = ["zero",1,"two","three"]"#);
 }
+
+#[test]
+fn test_json_math() {
+    let tt =
+        TreeTemplate::from_str(r#"3*({{$0}}+{{$1}}+{{$2}})={{mul 3 (add $0 $1 $2)}}"#).unwrap();
+    let mut tm = temp_man::BasicTemps::new();
+    let fm = func_man::default_func_man();
+    let res = tt
+        .run(
+            &[Value::from(3), Value::from(5.2), Value::from(100)],
+            &mut tm,
+            &fm,
+        )
+        .unwrap();
+    assert_eq!(res, "3*(3+5.2+100)=324.6");
+}
+
+#[test]
+fn test_var_part() {
+    let tt = TreeTemplate::from_str(r#"{{$0.0}}+{{$0.1}}+{{$0.2}}"#).unwrap();
+    let mut tm = temp_man::BasicTemps::new();
+    let fm = func_man::default_func_man();
+    let res = tt
+        .run(
+            &[Value::Array(vec![
+                Value::from(3),
+                Value::from(5.2),
+                Value::from(100),
+            ])],
+            &mut tm,
+            &fm,
+        )
+        .unwrap();
+
+    assert_eq!(res, "3+5.2+100");
+}

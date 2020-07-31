@@ -19,12 +19,12 @@ parser! {(SingleQuotes->String)
 
 parser! {(Pipe->Pipeline)
     or!(
-        middle('(',ws__(Pipe),')'),
+        middle(ws_('('),ws__(Pipe),')'),
         ('$',sep_star(Var,'.')).map(|(_,p)|Pipeline::Var(p)),
         (Ident,star(ws__(Pipe))).map(|(c,v)|Pipeline::Command(c,v)),
         string(Quoted).map(|v|Pipeline::Lit(v)),
         SingleQuotes.map(|v|Pipeline::Lit(v)),
-        not(" \t}").plus().map(|v|Pipeline::Lit(v)),
+        not(" \t}()").plus().map(|v|Pipeline::Lit(v)),
     )
 }
 
