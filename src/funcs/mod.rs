@@ -4,6 +4,7 @@ use crate::*;
 use func_man::*;
 
 mod bools;
+mod nums;
 
 pub trait WithFuncs<T: Templable>: Sized {
     fn with_f<K: Into<String>>(self, k: K, f: Box<TFunc<T>>) -> Self;

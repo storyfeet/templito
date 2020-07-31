@@ -1,5 +1,6 @@
 use crate::*;
 use err::*;
+use func_man::TFunc;
 use serde_json::Value;
 use std::str::FromStr;
 
@@ -77,4 +78,31 @@ impl Templable for Value {
             _ => return None,
         }
     }
+
+    fn get_func<'a>(&'a self, k: &str) -> Option<&'a TFunc<Self>> {
+        match k {
+            "to_json" => Some(&to_json),
+            "add"=> Some(&|l| super::fold(l, add)),
+            _ => None,
+        }
+    }
+}
+
+fn add(a:Value,b:&Value)->anyhow::Result<Value>{
+    match (a,b){
+        (Value::Number(an),Value::Number(bn))=> 
+            if (an.is_f64() || bn.is_f64())
+                Ok(Value::Number)
+
+            Ok(Value::Number(an+bn)),
+        _=>
+    }
+}
+
+fn to_json(l: &[Value]) -> anyhow::Result<Value> {
+    let rs = match l.len() {
+        1 => serde_json::to_string(&l[0])?,
+        _ => serde_json::to_string(l)?,
+    };
+    Ok(Value::String(rs))
 }

@@ -56,7 +56,7 @@ pub fn run_command<D: Templable, TM: TempManager, FM: FuncManager<D>>(
 
     if v.len() > 0 {
         if let Some(in_item) = v[0].get_func(cname) {
-            return Ok(in_item(&v[0], &v[1..])?);
+            return Ok(in_item(&v)?);
         }
     }
     if let Some(in_tp) = tm.get_t(cname).map(|t| t.clone()) {

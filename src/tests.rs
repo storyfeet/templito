@@ -2,7 +2,7 @@
 
 use crate::*;
 use pipeline::*;
-use serde_json::Value;
+use serde_json::{Number, Value};
 use std::str::FromStr;
 use template::*;
 
@@ -101,4 +101,18 @@ fn test_first_sel() {
     let fm = func_man::default_func_man();
     let res = tt.run(&[dtrue, d2, r1, r2], &mut tm, &fm).unwrap();
     assert_eq!(res, "MOO is HELLO GOODBYE ");
+}
+#[test]
+fn test_for_json_own_method() {
+    let tt = TreeTemplate::from_str(r#"JRES = {{to_json $0}}"#).unwrap();
+    let data = Value::Array(vec![
+        Value::String("zero".to_string()),
+        Value::Number(Number::from(1)),
+        Value::String("two".to_string()),
+        Value::String("three".to_string()),
+    ]);
+    let mut tm = temp_man::BasicTemps::new();
+    let fm = func_man::default_func_man();
+    let res = tt.run(&[data], &mut tm, &fm).unwrap();
+    assert_eq!(res, r#"JRES = ["zero",1,"two","three"]"#);
 }

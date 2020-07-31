@@ -10,7 +10,6 @@ pub mod template;
 mod tests;
 use template::{TreeTemplate, VarPart};
 
-pub type SFunc<T> = dyn Fn(&T, &[T]) -> anyhow::Result<T>;
 use std::fmt::{Debug, Display};
 
 pub trait Templable: 'static + Sized + PartialEq + Debug + Display + Clone {
@@ -46,7 +45,7 @@ pub trait Templable: 'static + Sized + PartialEq + Debug + Display + Clone {
     fn get_index<'a>(&'a self, _n: usize) -> Option<&'a Self> {
         None
     }
-    fn get_func<'a>(&'a self, _s: &str) -> Option<&'a SFunc<Self>> {
+    fn get_func<'a>(&'a self, _s: &str) -> Option<&'a func_man::TFunc<Self>> {
         None
     }
 
