@@ -1,6 +1,7 @@
 use crate::*;
 use funcs::WithFuncs;
 use std::collections::HashMap;
+use std::path::PathBuf;
 
 pub type TFunc<T> = dyn Fn(&[T]) -> anyhow::Result<T>;
 pub type TFn<T> = fn(&[T]) -> anyhow::Result<T>;
@@ -40,4 +41,8 @@ impl<T: 'static + Templable> FuncAdder<T> for BasicFuncs<T> {
 
 pub fn default_func_man<T: Templable>() -> BasicFuncs<T> {
     BasicFuncs::new().with_defaults()
+}
+
+pub fn func_man_folders<T: Templable, P: Into<PathBuf>>(p: P) -> BasicFuncs<T> {
+    BasicFuncs::new().with_defaults().with_folder_lock(p)
 }

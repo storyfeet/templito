@@ -85,7 +85,7 @@ pub fn file<D: Templable>(pb: PathBuf) -> Box<TFunc<D>> {
 
 pub fn join<D: Templable>() -> Box<TFunc<D>> {
     Box::new(|l| {
-        let res = PathBuf::new();
+        let mut res = PathBuf::new();
         for r in l {
             res.push(r.string_it())
         }

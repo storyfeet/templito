@@ -9,6 +9,7 @@ pub mod temp_man;
 pub mod template;
 mod tests;
 use template::{TreeTemplate, VarPart};
+pub mod prelude;
 
 use std::fmt::{Debug, Display};
 
@@ -101,7 +102,7 @@ pub trait Templable: 'static + Sized + PartialEq + Debug + Display + Clone {
     }
 
     fn compare(&self, b: &Self) -> Option<std::cmp::Ordering>;
-    fn list(v: Vec<Self>) -> Option<Self> {
+    fn list(_v: Vec<Self>) -> Option<Self> {
         None
     }
     //TODO consider having an path->Self method that's auto implemented
