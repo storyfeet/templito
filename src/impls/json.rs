@@ -90,6 +90,9 @@ impl Templable for Value {
             _ => None,
         }
     }
+    fn list(v: Vec<Self>) -> Option<Self> {
+        Some(Self::Array(v))
+    }
 }
 
 fn nums_f(a: &Number, b: &Number) -> Option<(f64, f64)> {

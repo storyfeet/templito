@@ -96,6 +96,10 @@ impl Templable for Value {
             _ => None,
         }
     }
+
+    fn list(v: Vec<Self>) -> Option<Self> {
+        Some(Self::Array(v))
+    }
 }
 
 fn add(a: Value, b: &Value) -> anyhow::Result<Value> {

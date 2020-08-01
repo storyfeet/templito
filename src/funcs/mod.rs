@@ -2,9 +2,12 @@
 
 use crate::*;
 use func_man::*;
+use std::path::PathBuf;
 
 mod bools;
+mod folder;
 mod nums;
+mod strings;
 
 pub trait WithFuncs<T: Templable>: Sized {
     fn with_f<K: Into<String>>(self, k: K, f: Box<TFunc<T>>) -> Self;
@@ -14,7 +17,8 @@ pub trait WithFuncs<T: Templable>: Sized {
     }
 
     fn with_strings(self) -> Self {
-        self.with_f("cat", cat())
+        self.with_f("cat", strings::cat())
+            .with_f("md", strings::md())
     }
 
     fn with_bools(self) -> Self {
@@ -26,23 +30,18 @@ pub trait WithFuncs<T: Templable>: Sized {
             .with_f("and", bools::and())
             .with_f("or", bools::or())
     }
+
+    fn with_folder_lock<P: Into<PathBuf>>(self, pb: PathBuf) -> Self {
+        let pb: PathBuf = pb.into();
+        self.with_f("dir", folder::dir(pb.clone()))
+            .with_f("file", folder::file(pb.clone()))
+            .with_f("is_file", folder::is_file(pb.clone()))
+            .with_f("is_dir", folder::is_dir(pb.clone()))
+    }
 }
 
 impl<FA: FuncAdder<T>, T: Templable> WithFuncs<T> for FA {
     fn with_f<K: Into<String>>(self, k: K, f: Box<TFunc<T>>) -> Self {
         self.with_func(k, f)
     }
-}
-
-fn cat<T: Templable>() -> Box<TFunc<T>> {
-    Box::new(|l: &[T]| -> anyhow::Result<T> {
-        let mut r_str = String::new();
-        for v in l {
-            match &v.as_str() {
-                Some(s) => r_str.push_str(s),
-                None => r_str.push_str(&v.to_string()),
-            }
-        }
-        Ok(T::string(&r_str))
-    })
 }

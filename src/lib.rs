@@ -101,4 +101,8 @@ pub trait Templable: 'static + Sized + PartialEq + Debug + Display + Clone {
     }
 
     fn compare(&self, b: &Self) -> Option<std::cmp::Ordering>;
+    fn list(v: Vec<Self>) -> Option<Self> {
+        None
+    }
+    //TODO consider having an path->Self method that's auto implemented
 }
