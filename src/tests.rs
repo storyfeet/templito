@@ -152,3 +152,15 @@ fn test_var_part() {
 
     assert_eq!(res, "3+5.2+100");
 }
+
+#[test]
+fn test_at_can_be_used_in_params() {
+    let tt = TreeTemplate::from_str(r#"{{@cat "Food" @ "noobs"}} {{$0}} {{/cat}}!!"#).unwrap();
+    let mut tm = temp_man::BasicTemps::new();
+    let fm = func_man::default_func_man();
+    let res = tt
+        .run(&[Value::String("is for".to_string())], &mut tm, &fm)
+        .unwrap();
+
+    assert_eq!(res, "Food is for noobs!!");
+}

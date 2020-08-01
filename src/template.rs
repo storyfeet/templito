@@ -149,7 +149,7 @@ impl TreeItem {
                 for p in params {
                     v.push(p.run(scope, tm, fm)?);
                 }
-                Ok(pipeline::run_values::<D, TM, FM>(command, &v, tm, fm)?.to_string())
+                Ok(pipeline::run_values::<D, TM, FM>(command, &v, tm, fm)?.string_it())
             }
         }
     }

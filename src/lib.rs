@@ -23,6 +23,15 @@ pub trait Templable: 'static + Sized + PartialEq + Debug + Display + Clone {
     fn as_str(&self) -> Option<&str> {
         None
     }
+
+    ///No need to override this one, It tries as_str first otherwise uses Display
+    fn string_it(&self) -> String {
+        match self.as_str() {
+            Some(s) => s.to_string(),
+            None => self.to_string(),
+        }
+    }
+
     ///Create the type from a bool value
     ///This will be the result of boolean operations in the template
     fn bool(b: bool) -> Self;
