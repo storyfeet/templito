@@ -154,7 +154,6 @@ fn modulo(a: Value, b: &Value) -> anyhow::Result<Value> {
 #[cfg(test)]
 mod toml_test {
     use super::*;
-    use crate::*;
     use pipeline::*;
     use std::str::FromStr;
     use template::*;

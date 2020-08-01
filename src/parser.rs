@@ -21,6 +21,7 @@ parser! {(Pipe->Pipeline)
     or!(
         middle(ws_('('),ws__(Pipe),')'),
         ('$',sep_star(Var,'.')).map(|(_,p)|Pipeline::Var(p)),
+        ('@').map(|_| Pipeline::Var(vec![VarPart::Id("@".to_string())])),
         (Ident,star(ws__(Pipe))).map(|(c,v)|Pipeline::Command(c,v)),
         string(Quoted).map(|v|Pipeline::Lit(v)),
         SingleQuotes.map(|v|Pipeline::Lit(v)),
@@ -49,6 +50,8 @@ parser! {(Item->FlatItem)
             (ws_(keyword("elif")),ws__(Pipe)).map(|(_,p)|FlatItem::Elif(p)),
             (ws_(keyword("for")),ws_(Ident),ws_(Ident),ws_(keyword("in")),ws__(Pipe)).map(|(_,k,v,_,p)| FlatItem::For(k,v,p)),
             (ws_(keyword("let")),sep_plus(Assign,ws_(";"))).map(|(_,v)|FlatItem::Let(v)),
+            (ws_('@'),Ident,star(ws__(Pipe))).map(|(_,s,b)|FlatItem::Block(s,b)),
+            (ws_('/'),Ident,WS.star()).map(|(_,n,_)|FlatItem::EndBlock(n)),
             ws__(Pipe).map(|p|FlatItem::Pipe(p)),
     ),"}}")
         .or(strings_plus_until(StringItem,peek(or_ig!("{{",eoi))).map(|(s,_)|FlatItem::String(s)))

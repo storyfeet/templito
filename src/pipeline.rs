@@ -11,6 +11,27 @@ pub enum Pipeline {
     Command(String, Vec<Pipeline>),
 }
 
+pub fn run_values<D: Templable, TM: TempManager, FM: FuncManager<D>>(
+    cname: &str,
+    args: &[D],
+    //scope: &Scope<D>,
+    tm: &mut TM,
+    fm: &FM,
+) -> anyhow::Result<D> {
+    if args.len() > 0 {
+        if let Some(in_item) = args[0].get_func(cname) {
+            return Ok(in_item(&args)?);
+        }
+    }
+    if let Some(in_tp) = tm.get_t(cname).map(|t| t.clone()) {
+        Ok(D::string(&in_tp.run(&args, tm, fm)?))
+    } else if let Some(in_f) = fm.get_func(&cname) {
+        Ok(in_f(&args)?)
+    } else {
+        Err(Error::String(format!("No function or template b the name {}", cname)).into())
+    }
+}
+
 pub fn run_command<D: Templable, TM: TempManager, FM: FuncManager<D>>(
     cname: &str,
     args: &[Pipeline],
@@ -50,22 +71,10 @@ pub fn run_command<D: Templable, TM: TempManager, FM: FuncManager<D>>(
     let mut v = Vec::new();
     for p in args {
         let pval = p.run(scope, tm, fm)?;
-        println!("Param value = {:?}", pval);
+        //println!("Param value = {:?}", pval);
         v.push(pval);
     }
-
-    if v.len() > 0 {
-        if let Some(in_item) = v[0].get_func(cname) {
-            return Ok(in_item(&v)?);
-        }
-    }
-    if let Some(in_tp) = tm.get_t(cname).map(|t| t.clone()) {
-        Ok(D::parse_lit(&in_tp.run(&v, tm, fm)?)?)
-    } else if let Some(in_f) = fm.get_func(&cname) {
-        Ok(in_f(&v)?)
-    } else {
-        Err(Error::String(format!("No function or template b the name {}", cname)).into())
-    }
+    run_values(cname, &v, tm, fm)
 }
 
 impl Pipeline {

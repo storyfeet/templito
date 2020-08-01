@@ -13,6 +13,11 @@ pub type Block = Vec<TreeItem>;
 pub enum TreeItem {
     String(String),
     Pipe(Pipeline),
+    Block {
+        command: String,
+        params: Vec<Pipeline>,
+        block: Block,
+    },
     If {
         cond: Pipeline,
         yes: Block,
@@ -41,6 +46,8 @@ pub enum FlatItem {
     Elif(Pipeline),
     For(String, String, Pipeline),
     Let(Vec<(String, Pipeline)>),
+    Block(String, Vec<Pipeline>),
+    EndBlock(String),
     EndIf,
     EndFor,
 }
@@ -131,6 +138,19 @@ impl TreeItem {
                     Err(Error::String(format!("Cannot loop on {:?}", looper)).into())
                 }
             }
+            TreeItem::Block {
+                command,
+                params,
+                block,
+            } => {
+                let ch = run_block(block, scope, tm, fm)?;
+                scope.set("@", D::string(&ch));
+                let mut v = vec![];
+                for p in params {
+                    v.push(p.run(scope, tm, fm)?);
+                }
+                Ok(pipeline::run_values::<D, TM, FM>(command, &v, tm, fm)?.to_string())
+            }
         }
     }
 }
@@ -152,58 +172,69 @@ impl TreeTemplate {
     }
 }
 
-pub fn flat_basic(fi: FlatItem) -> Result<TreeItem, Error> {
+///Handles all openers, but not any of the closers
+pub fn tt_basic<I: Iterator<Item = FlatItem>>(fi: FlatItem, it: &mut I) -> Result<TreeItem, Error> {
     Ok(match fi {
         FlatItem::String(s) => TreeItem::String(s),
         FlatItem::Pipe(p) => TreeItem::Pipe(p),
         FlatItem::Let(v) => TreeItem::Let(v),
+        FlatItem::If(p) => tt_if_yes(p, it)?,
+        FlatItem::For(k, v, p) => TreeItem::For {
+            k,
+            v,
+            p,
+            b: tt_for(it)?,
+        },
+        FlatItem::Block(command, params) => {
+            let block = tt_name_block(&command, it)?;
+            TreeItem::Block {
+                command,
+                params,
+                block,
+            }
+        }
         e => return Err(Error::String(format!("Unexpected {:?}", e))),
     })
 }
 
-pub fn tt_block<I: Iterator<Item = FlatItem>>(i: &mut I) -> Result<TreeTemplate, Error> {
+pub fn tt_root_block<I: Iterator<Item = FlatItem>>(i: &mut I) -> Result<TreeTemplate, Error> {
     let mut res = Vec::new();
     while let Some(t) = i.next() {
-        res.push(match t {
-            FlatItem::If(p) => tt_if_yes(p, i)?,
-            FlatItem::For(k, v, p) => TreeItem::For {
-                k,
-                v,
-                p,
-                b: tt_for(i)?,
-            },
-            other => flat_basic(other)?,
-        })
+        res.push(tt_basic(t, i)?)
     }
     Ok(TreeTemplate { v: res })
 }
 
-pub fn tt_if_yes<I: Iterator<Item = FlatItem>>(
-    cond: Pipeline,
-    i: &mut I,
-) -> Result<TreeItem, Error> {
-    let mut yes = Vec::new();
+pub fn tt_name_block<I: Iterator<Item = FlatItem>>(name: &str, i: &mut I) -> Result<Block, Error> {
+    let mut res = Vec::new();
     while let Some(t) = i.next() {
         match t {
-            FlatItem::If(p) => yes.push(tt_if_yes(p, i)?), //TODO
-            FlatItem::For(k, v, p) => yes.push(TreeItem::For {
-                k,
-                v,
-                p,
-                b: tt_for(i)?,
-            }),
+            FlatItem::EndBlock(n) if n == name => return Ok(res),
+            other => res.push(tt_basic(other, i)?),
+        }
+    }
+    Err(Error::String(format!("{} block not ended", name)))
+}
+
+pub fn tt_if_yes<I: Iterator<Item = FlatItem>>(
+    cond: Pipeline,
+    it: &mut I,
+) -> Result<TreeItem, Error> {
+    let mut yes = Vec::new();
+    while let Some(t) = it.next() {
+        match t {
             FlatItem::Else => {
                 return Ok(TreeItem::If {
                     cond,
                     yes,
-                    no: tt_if_no(i)?,
+                    no: tt_else(it)?,
                 })
             }
             FlatItem::Elif(p) => {
                 return Ok(TreeItem::If {
                     cond,
                     yes,
-                    no: Some(vec![tt_if_yes(p, i)?]),
+                    no: Some(vec![tt_if_yes(p, it)?]),
                 })
             }
             FlatItem::EndIf => {
@@ -213,26 +244,19 @@ pub fn tt_if_yes<I: Iterator<Item = FlatItem>>(
                     no: None,
                 })
             }
-            other => yes.push(flat_basic(other)?),
+            other => yes.push(tt_basic(other, it)?),
         }
     }
     //Should this fail?
     Err(Error::Str("Expected '/if' 'else' or 'elif'"))
 }
 
-pub fn tt_if_no<I: Iterator<Item = FlatItem>>(i: &mut I) -> Result<Option<Block>, Error> {
+pub fn tt_else<I: Iterator<Item = FlatItem>>(it: &mut I) -> Result<Option<Block>, Error> {
     let mut no = Vec::new();
-    while let Some(t) = i.next() {
+    while let Some(t) = it.next() {
         match t {
-            FlatItem::If(p) => no.push(tt_if_yes(p, i)?), //TODO
-            FlatItem::For(k, v, p) => no.push(TreeItem::For {
-                k,
-                v,
-                p,
-                b: tt_for(i)?,
-            }),
             FlatItem::EndIf => return Ok(Some(no)),
-            other => no.push(flat_basic(other)?),
+            other => no.push(tt_basic(other, it)?),
         }
     }
     Ok(Some(no))
@@ -242,15 +266,8 @@ pub fn tt_for<I: Iterator<Item = FlatItem>>(i: &mut I) -> Result<Block, Error> {
     let mut block = Vec::new();
     while let Some(t) = i.next() {
         match t {
-            FlatItem::If(p) => block.push(tt_if_yes(p, i)?), //TODO
-            FlatItem::For(k, v, p) => block.push(TreeItem::For {
-                k,
-                v,
-                p,
-                b: tt_for(i)?,
-            }),
             FlatItem::EndFor => return Ok(block),
-            other => block.push(flat_basic(other)?),
+            other => block.push(tt_basic(other, i)?),
         }
     }
     Ok(block)
@@ -258,7 +275,7 @@ pub fn tt_for<I: Iterator<Item = FlatItem>>(i: &mut I) -> Result<Block, Error> {
 
 impl FlatTemplate {
     pub fn to_tree(self) -> Result<TreeTemplate, Error> {
-        tt_block(&mut self.v.into_iter())
+        tt_root_block(&mut self.v.into_iter())
     }
 }
 
