@@ -3,6 +3,13 @@ use crate::template::*;
 use common::{Ident, Quoted};
 use gobble::*;
 
+pub fn wn_<P: Parser>(p: P) -> impl Parser<Out = P::Out> {
+    last(" \t\n\r".star(), p)
+}
+pub fn wn__<P: Parser>(p: P) -> impl Parser<Out = P::Out> {
+    middle(" \t\n\r".star(), p, " \t\n\r".star())
+}
+
 parser! { (TFile->FlatTemplate)
     star_until_ig(Item,eoi).map(|v|FlatTemplate{v})
 }
@@ -19,10 +26,10 @@ parser! {(SingleQuotes->String)
 
 parser! {(Pipe->Pipeline)
     or!(
-        middle(ws_('('),ws__(Pipe),')'),
+        middle(wn_('('),wn__(Pipe),')'),
         ('$',sep_star(Var,'.')).map(|(_,p)|Pipeline::Var(p)),
         ('@').map(|_| Pipeline::Var(vec![VarPart::Id("@".to_string())])),
-        (Ident,star(ws__(Pipe))).map(|(c,v)|Pipeline::Command(c,v)),
+        (Ident,star(wn__(Pipe))).map(|(c,v)|Pipeline::Command(c,v)),
         string(Quoted).map(|v|Pipeline::Lit(v)),
         SingleQuotes.map(|v|Pipeline::Lit(v)),
         not(" \t}()").plus().map(|v|Pipeline::Lit(v)),
@@ -38,21 +45,24 @@ parser! {(StringItem->String)
 }
 
 parser! {(Assign->(String,Pipeline))
-    (ws_(Ident),ws_("="),ws_(Pipe)).map(|(a,_,v)|(a,v))
+    (wn_(Ident),wn_("="),wn_(Pipe)).map(|(a,_,v)|(a,v))
 }
 
 parser! {(Item->FlatItem)
     middle("{{",or!(
-            ws__(keyword("else")).map(|_|FlatItem::Else),
-            ws__(keyword("/if")).map(|_|FlatItem::EndIf),
-            ws__(keyword("/for")).map(|_|FlatItem::EndFor),
-            (ws_(keyword("if")),ws__(Pipe)).map(|(_,p)|FlatItem::If(p)),
-            (ws_(keyword("elif")),ws__(Pipe)).map(|(_,p)|FlatItem::Elif(p)),
-            (ws_(keyword("for")),ws_(Ident),ws_(Ident),ws_(keyword("in")),ws__(Pipe)).map(|(_,k,v,_,p)| FlatItem::For(k,v,p)),
-            (ws_(keyword("let")),sep_plus(Assign,ws_(";"))).map(|(_,v)|FlatItem::Let(v)),
-            (ws_('@'),Ident,star(ws__(Pipe))).map(|(_,s,b)|FlatItem::Block(s,b)),
-            (ws_('/'),Ident,WS.star()).map(|(_,n,_)|FlatItem::EndBlock(n)),
-            ws__(Pipe).map(|p|FlatItem::Pipe(p)),
+            wn__(keyword("else")).map(|_|FlatItem::Else),
+            wn__(keyword("/if")).map(|_|FlatItem::EndIf),
+            wn__(keyword("/for")).map(|_|FlatItem::EndFor),
+            (wn_(keyword("if")),wn__(Pipe)).map(|(_,p)|FlatItem::If(p)),
+            (wn_(keyword("elif")),wn__(Pipe)).map(|(_,p)|FlatItem::Elif(p)),
+            (wn_(keyword("for")),wn_(Ident),wn_(Ident),wn_(keyword("in")),wn__(Pipe)).map(|(_,k,v,_,p)| FlatItem::For(k,v,p)),
+            (wn_(keyword("let")),sep_plus(Assign,wn_(";"))).map(|(_,v)|FlatItem::Let(v)),
+            (wn_(keyword("export")),sep_plus(Assign,wn_(";"))).map(|(_,v)|FlatItem::Export(v)),
+            (wn_(keyword("@let")),wn_(Ident)).map(|(_,n)|FlatItem::AtLet(n)),
+            (wn_(keyword("@export")),wn_(Ident)).map(|(_,n)|FlatItem::AtExport(n)),
+            (wn_('@'),Ident,star(wn__(Pipe))).map(|(_,s,b)|FlatItem::Block(s,b)),
+            (wn_('/'),Ident,WS.star()).map(|(_,n,_)|FlatItem::EndBlock(n)),
+            wn__(Pipe).map(|p|FlatItem::Pipe(p)),
     ),"}}")
         .or(strings_plus_until(StringItem,peek(or_ig!("{{",eoi))).map(|(s,_)|FlatItem::String(s)))
 }

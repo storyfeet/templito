@@ -79,7 +79,7 @@ impl Templable for Value {
         }
     }
 
-    fn get_func<'a>(&'a self, k: &str) -> Option<&'a TFunc<Self>> {
+    fn get_func(k: &str) -> Option<&'static TFunc<Self>> {
         match k {
             "to_json" => Some(&to_json),
             "add" => Some(&|l| super::fold(l, add)),

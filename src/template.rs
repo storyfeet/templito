@@ -5,6 +5,7 @@ use gobble::Parser;
 use parser::TFile;
 use pipeline::*;
 use scope::Scope;
+use std::collections::HashMap;
 use temp_man::TempManager;
 
 pub type Block = Vec<TreeItem>;
@@ -30,6 +31,9 @@ pub enum TreeItem {
         b: Block,
     },
     Let(Vec<(String, Pipeline)>),
+    Export(Vec<(String, Pipeline)>),
+    AtLet(String, Block),
+    AtExport(String, Block),
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -45,7 +49,10 @@ pub enum FlatItem {
     Else,
     Elif(Pipeline),
     For(String, String, Pipeline),
+    AtLet(String),
+    AtExport(String),
     Let(Vec<(String, Pipeline)>),
+    Export(Vec<(String, Pipeline)>),
     Block(String, Vec<Pipeline>),
     EndBlock(String),
     EndIf,
@@ -91,6 +98,13 @@ impl TreeItem {
                 for (k, v) in vec {
                     let vsolid = v.run(&scope, tm, fm)?;
                     scope.set(k.to_string(), vsolid);
+                }
+                Ok(String::new())
+            }
+            TreeItem::Export(vec) => {
+                for (k, v) in vec {
+                    let vsolid = v.run(&scope, tm, fm)?;
+                    scope.set_root(k.to_string(), vsolid);
                 }
                 Ok(String::new())
             }
@@ -151,6 +165,16 @@ impl TreeItem {
                 }
                 Ok(pipeline::run_values::<D, TM, FM>(command, &v, tm, fm)?.string_it())
             }
+            TreeItem::AtLet(name, block) => {
+                let ch = run_block(block, scope, tm, fm)?;
+                scope.set(name, D::string(&ch));
+                Ok(String::new())
+            }
+            TreeItem::AtExport(name, block) => {
+                let ch = run_block(block, scope, tm, fm)?;
+                scope.set_root(name, D::string(&ch));
+                Ok(String::new())
+            }
         }
     }
 }
@@ -162,13 +186,21 @@ impl TreeTemplate {
         tm: &mut TM,
         fm: &FM,
     ) -> anyhow::Result<String> {
+        self.run_exp(params, tm, fm).map(|(s, _)| s)
+    }
+    pub fn run_exp<D: Templable, TM: TempManager, FM: FuncManager<D>>(
+        &self,
+        params: &[D],
+        tm: &mut TM,
+        fm: &FM,
+    ) -> anyhow::Result<(String, HashMap<String, D>)> {
         let mut res = String::new();
         let mut scope = Scope::new(params);
         let mut it = (&self.v).into_iter();
         while let Some(item) = it.next() {
             res.push_str(&item.run(&mut scope, tm, fm)?);
         }
-        Ok(res)
+        Ok((res, scope.top()))
     }
 }
 
@@ -178,6 +210,9 @@ pub fn tt_basic<I: Iterator<Item = FlatItem>>(fi: FlatItem, it: &mut I) -> Resul
         FlatItem::String(s) => TreeItem::String(s),
         FlatItem::Pipe(p) => TreeItem::Pipe(p),
         FlatItem::Let(v) => TreeItem::Let(v),
+        FlatItem::AtLet(v) => TreeItem::AtLet(v, tt_name_block("let", it)?),
+        FlatItem::Export(v) => TreeItem::Export(v),
+        FlatItem::AtExport(v) => TreeItem::AtExport(v, tt_name_block("let", it)?),
         FlatItem::If(p) => tt_if_yes(p, it)?,
         FlatItem::For(k, v, p) => TreeItem::For {
             k,

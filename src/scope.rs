@@ -14,6 +14,11 @@ impl<'a, T: Templable> Scope<'a, T> {
             maps: vec![HashMap::new()],
         }
     }
+
+    pub fn top(self) -> HashMap<String, T> {
+        self.maps.into_iter().next().unwrap_or(HashMap::new())
+    }
+
     fn get_base(&'a self, vp: &VarPart) -> Option<&'a T> {
         match vp {
             VarPart::Num(n) => self.params.get(*n),
@@ -39,6 +44,11 @@ impl<'a, T: Templable> Scope<'a, T> {
         assert!(self.maps.len() > 0);
         let p = self.maps.len() - 1;
         self.maps[p].insert(k.into(), v);
+    }
+
+    pub fn set_root<K: Into<String>>(&mut self, k: K, v: T) {
+        assert!(self.maps.len() > 0);
+        self.maps[0].insert(k.into(), v);
     }
 
     pub fn push(&mut self) {

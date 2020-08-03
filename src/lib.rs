@@ -81,7 +81,7 @@ pub trait Templable: 'static + Sized + PartialEq + Debug + Display + Clone {
     ///be an error
     ///For example Map/Array creating, or maths that this type might handle differently
     ///For an example look at crate::impls::json.rs
-    fn get_func<'a>(&'a self, _s: &str) -> Option<&'a func_man::TFunc<Self>> {
+    fn get_func(_s: &str) -> Option<&'static func_man::TFunc<Self>> {
         None
     }
 

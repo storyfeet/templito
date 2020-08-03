@@ -86,7 +86,7 @@ impl Templable for Value {
         }
     }
 
-    fn get_func<'a>(&'a self, s: &str) -> Option<&'a TFunc<Self>> {
+    fn get_func(s: &str) -> Option<&'static TFunc<Self>> {
         match s {
             "add" => Some(&|l| super::fold(l, add)),
             "sub" => Some(&|l| super::fold(l, sub)),
@@ -158,7 +158,6 @@ fn modulo(a: Value, b: &Value) -> anyhow::Result<Value> {
 #[cfg(test)]
 mod toml_test {
     use super::*;
-    use pipeline::*;
     use std::str::FromStr;
     use template::*;
     #[test]

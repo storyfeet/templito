@@ -18,12 +18,9 @@ pub fn run_values<D: Templable, TM: TempManager, FM: FuncManager<D>>(
     tm: &mut TM,
     fm: &FM,
 ) -> anyhow::Result<D> {
-    if args.len() > 0 {
-        if let Some(in_item) = args[0].get_func(cname) {
-            return Ok(in_item(&args)?);
-        }
-    }
-    if let Some(in_tp) = tm.get_t(cname).map(|t| t.clone()) {
+    if let Some(in_item) = D::get_func(cname) {
+        return Ok(in_item(&args)?);
+    } else if let Some(in_tp) = tm.get_t(cname).map(|t| t.clone()) {
         Ok(D::string(&in_tp.run(&args, tm, fm)?))
     } else if let Some(in_f) = fm.get_func(&cname) {
         Ok(in_f(&args)?)
