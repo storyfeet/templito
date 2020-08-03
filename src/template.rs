@@ -70,9 +70,9 @@ pub struct FlatTemplate {
     pub v: Vec<FlatItem>,
 }
 
-pub fn run_block<D: Templable, TM: TempManager, FM: FuncManager<D>>(
+pub fn run_block<TM: TempManager, FM: FuncManager>(
     block: &Block,
-    scope: &mut Scope<D>,
+    scope: &mut Scope,
     tm: &mut TM,
     fm: &FM,
 ) -> anyhow::Result<String> {
@@ -86,9 +86,9 @@ pub fn run_block<D: Templable, TM: TempManager, FM: FuncManager<D>>(
 }
 
 impl TreeItem {
-    pub fn run<D: Templable, TM: TempManager, FM: FuncManager<D>>(
+    pub fn run<TM: TempManager, FM: FuncManager>(
         &self,
-        scope: &mut Scope<D>,
+        scope: &mut Scope,
         tm: &mut TM,
         fm: &FM,
     ) -> anyhow::Result<String> {
@@ -134,7 +134,7 @@ impl TreeItem {
                 if let Some(keys) = looper.keys() {
                     for kname in keys {
                         let vval = looper.get_key(&kname).ok_or(Error::Str("Key Missing"))?;
-                        scope.set(k, D::string(&kname));
+                        scope.set(k, TData::String(kname));
                         scope.set(v, vval.clone());
                         res.push_str(&run_block(&b, scope, tm, fm)?);
                     }
@@ -142,7 +142,7 @@ impl TreeItem {
                 } else if let Some(len) = looper.len() {
                     for pos in 0..len {
                         let vval = looper.get_index(pos).ok_or(Error::Str("Key Missing"))?;
-                        scope.set(k, D::usize(pos));
+                        scope.set(k, TData::usize(pos));
                         scope.set(v, vval.clone());
                         res.push_str(&run_block(&b, scope, tm, fm)?);
                     }
@@ -158,21 +158,21 @@ impl TreeItem {
                 block,
             } => {
                 let ch = run_block(block, scope, tm, fm)?;
-                scope.set("@", D::string(&ch));
+                scope.set("@", TData::String(ch));
                 let mut v = vec![];
                 for p in params {
                     v.push(p.run(scope, tm, fm)?);
                 }
-                Ok(pipeline::run_values::<D, TM, FM>(command, &v, tm, fm)?.string_it())
+                Ok(pipeline::run_values::<TM, FM>(command, &v, tm, fm)?.string_it())
             }
             TreeItem::AtLet(name, block) => {
                 let ch = run_block(block, scope, tm, fm)?;
-                scope.set(name, D::string(&ch));
+                scope.set(name, TData::String(ch));
                 Ok(String::new())
             }
             TreeItem::AtExport(name, block) => {
                 let ch = run_block(block, scope, tm, fm)?;
-                scope.set_root(name, D::string(&ch));
+                scope.set_root(name, TData::Dtring(ch));
                 Ok(String::new())
             }
         }
@@ -180,20 +180,20 @@ impl TreeItem {
 }
 
 impl TreeTemplate {
-    pub fn run<D: Templable, TM: TempManager, FM: FuncManager<D>>(
+    pub fn run<TM: TempManager, FM: FuncManager>(
         &self,
-        params: &[D],
+        params: &[&dyn TParam],
         tm: &mut TM,
         fm: &FM,
     ) -> anyhow::Result<String> {
         self.run_exp(params, tm, fm).map(|(s, _)| s)
     }
-    pub fn run_exp<D: Templable, TM: TempManager, FM: FuncManager<D>>(
+    pub fn run_exp<TM: TempManager, FM: FuncManager>(
         &self,
-        params: &[D],
+        params: &[&dyn TParam],
         tm: &mut TM,
         fm: &FM,
-    ) -> anyhow::Result<(String, HashMap<String, D>)> {
+    ) -> anyhow::Result<(String, HashMap<String, TData>)> {
         let mut res = String::new();
         let mut scope = Scope::new(params);
         let mut it = (&self.v).into_iter();

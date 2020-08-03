@@ -2,24 +2,31 @@ use crate::*;
 use std::collections::HashMap;
 use template::VarPart;
 
-pub struct Scope<'a, T: Templable> {
-    params: &'a [T],
-    maps: Vec<HashMap<String, T>>,
+pub struct Scope<'a> {
+    params: &'a [&'a dyn TParam],
+    maps: Vec<HashMap<String, TData>>,
 }
 
-impl<'a, T: Templable> Scope<'a, T> {
-    pub fn new(params: &'a [T]) -> Self {
+impl<'a> Scope<'a> {
+    pub fn new(params: &'a [&'a dyn TParam]) -> Self {
         Scope {
             params,
             maps: vec![HashMap::new()],
         }
     }
 
-    pub fn top(self) -> HashMap<String, T> {
+    pub fn top(self) -> HashMap<String, TData> {
         self.maps.into_iter().next().unwrap_or(HashMap::new())
     }
 
-    fn get_base(&'a self, vp: &VarPart) -> Option<&'a T> {
+    pub fn param(&self, n: i32, path: &str) -> Option<TData> {
+        if n >= self.params.len() {
+            return None;
+        }
+        n.get_s_data(path)
+    }
+
+    fn get_base(&'a self, vp: &VarPart) -> Option<&'a TData> {
         match vp {
             VarPart::Num(n) => self.params.get(*n),
             VarPart::Id(s) => {
@@ -33,20 +40,20 @@ impl<'a, T: Templable> Scope<'a, T> {
         }
     }
 
-    pub fn get<'b>(&'b self, v: &[VarPart]) -> Option<&'b T> {
+    pub fn get<'b>(&'b self, v: &[VarPart]) -> Option<&'b TData> {
         if v.len() == 0 {
             return None;
         }
         self.get_base(&v[0]).and_then(|r| r.get_var_path(&v[1..]))
     }
 
-    pub fn set<K: Into<String>>(&mut self, k: K, v: T) {
+    pub fn set<K: Into<String>>(&mut self, k: K, v: TData) {
         assert!(self.maps.len() > 0);
         let p = self.maps.len() - 1;
         self.maps[p].insert(k.into(), v);
     }
 
-    pub fn set_root<K: Into<String>>(&mut self, k: K, v: T) {
+    pub fn set_root<K: Into<String>>(&mut self, k: K, v: TData) {
         assert!(self.maps.len() > 0);
         self.maps[0].insert(k.into(), v);
     }

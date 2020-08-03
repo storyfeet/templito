@@ -11,17 +11,17 @@ pub enum Pipeline {
     Command(String, Vec<Pipeline>),
 }
 
-pub fn run_values<D: Templable, TM: TempManager, FM: FuncManager<D>>(
+pub fn run_values<TM: TempManager, FM: FuncManager>(
     cname: &str,
-    args: &[D],
+    args: &[&dyn TParam],
     //scope: &Scope<D>,
     tm: &mut TM,
     fm: &FM,
-) -> anyhow::Result<D> {
-    if let Some(in_item) = D::get_func(cname) {
+) -> anyhow::Result<TData> {
+    if let Some(in_item) = TData::get_func(cname) {
         return Ok(in_item(&args)?);
     } else if let Some(in_tp) = tm.get_t(cname).map(|t| t.clone()) {
-        Ok(D::string(&in_tp.run(&args, tm, fm)?))
+        Ok(TData::String(in_tp.run(&args, tm, fm)?))
     } else if let Some(in_f) = fm.get_func(&cname) {
         Ok(in_f(&args)?)
     } else {
@@ -29,13 +29,13 @@ pub fn run_values<D: Templable, TM: TempManager, FM: FuncManager<D>>(
     }
 }
 
-pub fn run_command<D: Templable, TM: TempManager, FM: FuncManager<D>>(
+pub fn run_command<TM: TempManager, FM: FuncManager>(
     cname: &str,
     args: &[Pipeline],
-    scope: &Scope<D>,
+    scope: &Scope,
     tm: &mut TM,
     fm: &FM,
-) -> anyhow::Result<D> {
+) -> anyhow::Result<TData> {
     if cname == "first_valid" {
         for p in args {
             if let Ok(res) = p.run(scope, tm, fm) {
@@ -75,15 +75,15 @@ pub fn run_command<D: Templable, TM: TempManager, FM: FuncManager<D>>(
 }
 
 impl Pipeline {
-    pub fn run<D: Templable, TM: TempManager, FM: FuncManager<D>>(
+    pub fn run<TM: TempManager, FM: FuncManager>(
         &self,
-        scope: &Scope<D>,
+        scope: &Scope,
         tm: &mut TM,
         fm: &FM,
-    ) -> anyhow::Result<D> {
+    ) -> anyhow::Result<TData> {
         println!("Running = {:?}", self);
         match self {
-            Pipeline::Lit(v) => Ok(D::parse_lit(&v)?),
+            Pipeline::Lit(v) => Ok(TData::parse_lit(&v)?),
             Pipeline::Var(v) => scope
                 .get(v)
                 .map(|v| v.clone())

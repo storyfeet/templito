@@ -1,7 +1,7 @@
 pub mod err;
 pub mod func_man;
 pub mod funcs;
-pub mod impls;
+//pub mod impls;
 mod parser;
 mod pipeline;
 mod scope;
@@ -10,51 +10,80 @@ pub mod template;
 mod tests;
 use template::{TreeTemplate, VarPart};
 pub mod prelude;
+use std::collections::HashMap;
 
-use std::fmt::{Debug, Display};
+use std::fmt;
 
-pub trait Templable: 'static + Sized + PartialEq + Debug + Display + Clone {
-    ///How the type will be created from the template
-    fn parse_lit(s: &str) -> anyhow::Result<Self>;
-    ///Create a string instance of the type,
-    /// eg for serde_json 'Some(Value::String(s))'
-    fn string(s: &str) -> Self;
-    ///Check if this is a string type and return that
-    ///Should not normally convert other types to string
-    fn as_str(&self) -> Option<&str> {
-        None
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
+pub enum TData {
+    Bool(bool),
+    String(String),
+    Int(i64),
+    UInt(u64),
+    Float(f64),
+    List(Vec<TData>),
+    Map(HashMap<String, TData>),
+}
+
+impl fmt::Display for TData {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use TData::*;
+        match Self {
+            Bool(b) => write!(f, "{}", b),
+            String(s) => write!(f, "{}", s),
+            Int(i) => write!(f, "{}", i),
+            UInt(u) => write!(f, "{}", u),
+            Float(f) => write!(f, "{}", f),
+            List(v) => write!(f, "{:?}", v),
+            Map(m) => write!(f, "{:?}", m),
+        }
     }
+}
 
-    ///No need to override this one, It tries as_str first otherwise uses Display
-    fn string_it(&self) -> String {
-        match self.as_str() {
-            Some(s) => s.to_string(),
-            None => self.to_string(),
+pub trait TParam {
+    fn get_s(s: &str) -> Option<TData>;
+    fn get_u(u: usize) -> Option<TData>;
+}
+
+impl TData {
+    ///How the type will be created from the template
+
+    fn from_json(v: serde_json::Value) -> Self {
+        use serde_json::Value as SV;
+        match v {
+            SV::String(s) => Self::String(s),
+            SV::Number(n) => {
+                if n.is_f64() {
+                    Self::Float(n.as_f64().unwrap())
+                } else {
+                    Self::Int(n.as_i64().unwrap())
+                }
+            }
+            SV::Null => Self::Bool(false),
+            SV::Bool(b) => Self::Bool(b),
+            SV::Array(a) => Self::List(a.into_iter().map(|v| TData::from_json(v)).collect()),
+            SV::Object(m) => Self::Map(
+                m.into_iter()
+                    .map(|(k, v)| (k, TData::from_json(v)))
+                    .collect(),
+            ),
         }
     }
 
-    ///Create the type from a bool value
-    ///This will be the result of boolean operations in the template
-    fn bool(b: bool) -> Self;
-
-    ///If this type has a sensible bool value return that.
     ///Will be used for binary logic
     fn as_bool(&self) -> Option<bool> {
-        None
+        match self {
+            TData::Bool(b) => Some(b),
+            _ => None,
+        }
     }
-
-    ///This is not a None/Null type
-    fn is_valid(&self) -> bool {
-        true
-    }
-
-    ///Create this object from a usize or index value,
-    ///This will be the key value in for loops over arrays,
-    fn usize(u: usize) -> Self;
 
     ///Return the usize value that will be used for lookups and indexing
     fn as_usize(&self) -> Option<usize> {
-        None
+        match self {
+            TData::Usize(b) => Some(b),
+            _ => None,
+        }
     }
 
     ///Return a list of keys for for loops combined with
@@ -75,15 +104,6 @@ pub trait Templable: 'static + Sized + PartialEq + Debug + Display + Clone {
     fn get_index<'a>(&'a self, _n: usize) -> Option<&'a Self> {
         None
     }
-    ///This will be given a function name for you to return the function, This will be the
-    ///commands you wish to implement that work specifically for this type.
-    ///func_manager will be asked, then the template_manager If all of these fail there will
-    ///be an error
-    ///For example Map/Array creating, or maths that this type might handle differently
-    ///For an example look at crate::impls::json.rs
-    fn get_func(_s: &str) -> Option<&'static func_man::TFunc<Self>> {
-        None
-    }
 
     ///This function exists to enable '$0.cat.3' indexing
     fn get_var_part<'a>(&'a self, v: &VarPart) -> Option<&'a Self> {
@@ -100,10 +120,4 @@ pub trait Templable: 'static + Sized + PartialEq + Debug + Display + Clone {
         self.get_var_part(&v[0])
             .and_then(|p| p.get_var_path(&v[1..]))
     }
-
-    fn compare(&self, b: &Self) -> Option<std::cmp::Ordering>;
-    fn list(_v: Vec<Self>) -> Option<Self> {
-        None
-    }
-    //TODO consider having an path->Self method that's auto implemented
 }

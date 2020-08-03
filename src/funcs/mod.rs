@@ -6,11 +6,11 @@ use std::path::PathBuf;
 
 mod bools;
 mod folder;
-mod nums;
+mod math;
 mod strings;
 
-pub trait WithFuncs<T: Templable>: Sized {
-    fn with_f<K: Into<String>>(self, k: K, f: Box<TFunc<T>>) -> Self;
+pub trait WithFuncs {
+    fn with_f<K: Into<String>>(self, k: K, f: Box<TFunc>) -> Self;
 
     fn with_defaults(self) -> Self {
         self.with_bools().with_strings()
@@ -22,13 +22,13 @@ pub trait WithFuncs<T: Templable>: Sized {
     }
 
     fn with_bools(self) -> Self {
-        self.with_f("eq", bools::eq())
-            .with_f("gt", bools::gt())
-            .with_f("gte", bools::gte())
-            .with_f("lt", bools::lt())
-            .with_f("lte", bools::lte())
-            .with_f("and", bools::and())
-            .with_f("or", bools::or())
+        self.with_fn("eq", bools::eq)
+            .with_fn("gt", bools::gt)
+            .with_fn("gte", bools::gte)
+            .with_fn("lt", bools::lt)
+            .with_fn("lte", bools::lte)
+            .with_fn("and", bools::and)
+            .with_fn("or", bools::or)
     }
 
     fn with_folder_lock<P: Into<PathBuf>>(self, pb: P) -> Self {
@@ -41,8 +41,8 @@ pub trait WithFuncs<T: Templable>: Sized {
     }
 }
 
-impl<FA: FuncAdder<T>, T: Templable> WithFuncs<T> for FA {
-    fn with_f<K: Into<String>>(self, k: K, f: Box<TFunc<T>>) -> Self {
+impl<FA: FuncAdder> WithFuncs for FA {
+    fn with_f<K: Into<String>>(self, k: K, f: Box<TFunc>) -> Self {
         self.with_func(k, f)
     }
 }

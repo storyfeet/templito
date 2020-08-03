@@ -3,46 +3,46 @@ use funcs::WithFuncs;
 use std::collections::HashMap;
 use std::path::PathBuf;
 
-pub type TFunc<T> = dyn Fn(&[T]) -> anyhow::Result<T>;
-pub type TFn<T> = fn(&[T]) -> anyhow::Result<T>;
+pub type TFunc = dyn Fn(&[TData]) -> anyhow::Result<TData>;
+pub type TFn = fn(&[TData]) -> anyhow::Result<TData>;
 
-pub trait FuncManager<T: Templable> {
-    fn get_func(&self, k: &str) -> Option<&TFunc<T>>;
+pub trait FuncManager {
+    fn get_func(&self, k: &str) -> Option<&TFunc>;
 }
 
-pub trait FuncAdder<T: 'static + Templable>: Sized {
-    fn add_func<K: Into<String>>(&mut self, k: K, f: Box<TFunc<T>>);
-    fn add_fn<K: Into<String>>(&mut self, k: K, f: TFn<T>) {
+pub trait FuncAdder: Sized {
+    fn add_func<K: Into<String>>(&mut self, k: K, f: Box<TFunc>);
+    fn add_fn<K: Into<String>>(&mut self, k: K, f: TFn) {
         self.add_func(k, Box::new(f));
     }
-    fn with_func<K: Into<String>>(mut self, k: K, f: Box<TFunc<T>>) -> Self {
+    fn with_func<K: Into<String>>(mut self, k: K, f: Box<TFunc>) -> Self {
         self.add_func(k, f);
         self
     }
-    fn with_fn<K: Into<String>>(mut self, k: K, f: TFn<T>) -> Self {
+    fn with_fn<K: Into<String>>(mut self, k: K, f: TFn) -> Self {
         self.add_fn(k, f);
         self
     }
 }
 
-pub type BasicFuncs<T> = HashMap<String, Box<TFunc<T>>>;
+pub type BasicFuncs = HashMap<String, Box<TFunc>>;
 
-impl<T: Templable> FuncManager<T> for BasicFuncs<T> {
-    fn get_func(&self, k: &str) -> Option<&TFunc<T>> {
+impl FuncManager for BasicFuncs {
+    fn get_func(&self, k: &str) -> Option<&TFunc> {
         self.get(k).map(|r| &**r)
     }
 }
 
-impl<T: 'static + Templable> FuncAdder<T> for BasicFuncs<T> {
-    fn add_func<K: Into<String>>(&mut self, k: K, f: Box<TFunc<T>>) {
+impl FuncAdder for BasicFuncs {
+    fn add_func<K: Into<String>>(&mut self, k: K, f: Box<TFunc>) {
         self.insert(k.into(), f);
     }
 }
 
-pub fn default_func_man<T: Templable>() -> BasicFuncs<T> {
+pub fn default_func_man() -> BasicFuncs {
     BasicFuncs::new().with_defaults()
 }
 
-pub fn func_man_folders<T: Templable, P: Into<PathBuf>>(p: P) -> BasicFuncs<T> {
+pub fn func_man_folders<P: Into<PathBuf>>(p: P) -> BasicFuncs {
     BasicFuncs::new().with_defaults().with_folder_lock(p)
 }
