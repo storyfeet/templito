@@ -19,7 +19,7 @@ pub fn run_values<TM: TempManager, FM: FuncManager>(
     fm: &FM,
 ) -> anyhow::Result<TData> {
     if let Some(in_tp) = tm.get_t(cname).map(|t| t.clone()) {
-        let v2: Vec<&dyn TParam> = Vec::new();
+        let mut v2: Vec<&dyn TParam> = Vec::new();
         for a in args {
             v2.push(a);
         }
@@ -41,7 +41,9 @@ pub fn run_command<TM: TempManager, FM: FuncManager>(
     if cname == "first_valid" {
         for p in args {
             if let Ok(res) = p.run(scope, tm, fm) {
-                return Ok(res);
+                if res != TData::Null {
+                    return Ok(res);
+                }
             }
         }
         return Err(Error::Str("No elements passed the existence test").into());

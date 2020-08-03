@@ -24,6 +24,7 @@ pub enum TData {
     Float(f64),
     List(Vec<TData>),
     Map(HashMap<String, TData>),
+    Null,
 }
 
 impl PartialOrd for TData {
@@ -31,6 +32,10 @@ impl PartialOrd for TData {
         use TData::*;
         match (self, other) {
             (String(a), String(b)) => a.partial_cmp(b),
+            (Int(a), Int(b)) => a.partial_cmp(b),
+            (UInt(a), UInt(b)) => a.partial_cmp(b),
+            (Float(a), Float(b)) => a.partial_cmp(b),
+            _ => None,
         }
     }
 }
@@ -38,14 +43,15 @@ impl PartialOrd for TData {
 impl fmt::Display for TData {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use TData::*;
-        match Self {
+        match self {
             Bool(b) => write!(f, "{}", b),
             String(s) => write!(f, "{}", s),
             Int(i) => write!(f, "{}", i),
             UInt(u) => write!(f, "{}", u),
-            Float(f) => write!(f, "{}", f),
+            Float(fv) => write!(f, "{}", fv),
             List(v) => write!(f, "{:?}", v),
             Map(m) => write!(f, "{:?}", m),
+            Null => write!(f, "NULL"),
         }
     }
 }
@@ -68,7 +74,7 @@ impl TData {
                     Self::Int(n.as_i64().unwrap())
                 }
             }
-            SV::Null => Self::Bool(false),
+            SV::Null => Self::Null,
             SV::Bool(b) => Self::Bool(b),
             SV::Array(a) => Self::List(a.into_iter().map(|v| TData::from_json(v)).collect()),
             SV::Object(m) => Self::Map(
@@ -95,38 +101,23 @@ impl TData {
         }
     }
 
-    ///Return a list of keys for for loops combined with
-    fn keys(&self) -> Option<Vec<String>> {
-        None
-    }
-
     ///The len will be used in for loops when the value can be treated as an array
     ///Return None if the item cannot be indexed like an array
     fn len(&self) -> Option<usize> {
         None
     }
     ///This is used with 'keys' by for loops
-    fn get_key<'a>(&'a self, _s: &str) -> Option<&'a Self> {
-        None
+    fn get_key<'a>(&'a self, s: &str) -> Option<&'a Self> {
+        match self {
+            TData::Map(m) => m.get(s),
+            _ => None,
+        }
     }
     ///This is used by for loops
-    fn get_index<'a>(&'a self, _n: usize) -> Option<&'a Self> {
-        None
-    }
-
-    ///This function exists to enable '$0.cat.3' indexing
-    fn get_var_part<'a>(&'a self, v: &VarPart) -> Option<&'a Self> {
-        match v {
-            VarPart::Num(n) => self.get_index(*n),
-            VarPart::Id(s) => self.get_key(s),
+    fn get_index<'a>(&'a self, n: usize) -> Option<&'a Self> {
+        match self {
+            TData::List(l) => l.get(n),
+            _ => None,
         }
-    }
-
-    fn get_var_path<'a>(&'a self, v: &[VarPart]) -> Option<&'a Self> {
-        if v.len() == 0 {
-            return Some(self);
-        }
-        self.get_var_part(&v[0])
-            .and_then(|p| p.get_var_path(&v[1..]))
     }
 }

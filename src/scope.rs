@@ -20,32 +20,21 @@ impl<'a> Scope<'a> {
         self.maps.into_iter().next().unwrap_or(HashMap::new())
     }
 
-    pub fn param(&self, n: usize, path: &str) -> Option<TData> {
-        if n >= self.params.len() {
+    pub fn get<'b>(&'b self, v: &[VarPart]) -> Option<TData> {
+        if v.len() == 0 {
             return None;
         }
-        (*self.params[n]).get_s(path)
-    }
-
-    fn get_base(&'a self, vp: &VarPart) -> Option<TData> {
-        match vp {
-            VarPart::Num(n) => self.params[0].get_s(""),
+        match &v[0] {
+            VarPart::Num(n) => self.params.get(*n)?.get_v(&v[1..]),
             VarPart::Id(s) => {
-                for x in 1..=self.maps.len() {
-                    if let Some(v) = self.maps[self.maps.len() - x].get(s) {
-                        return Some(v.clone());
+                for i in 0..v.len() {
+                    if let Some(base) = self.maps[v.len() - 1 - i].get(s) {
+                        return base.get_v(&v[1..]);
                     }
                 }
                 None
             }
         }
-    }
-
-    pub fn get<'b>(&'b self, v: &[VarPart]) -> Option<&'b TData> {
-        if v.len() == 0 {
-            return None;
-        }
-        self.get_base(&v[0]).and_then(|r| r.get_var_path(&v[1..]))
     }
 
     pub fn set<K: Into<String>>(&mut self, k: K, v: TData) {

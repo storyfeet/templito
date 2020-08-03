@@ -9,16 +9,26 @@ mod folder;
 mod math;
 mod strings;
 
-pub trait WithFuncs {
+pub trait WithFuncs: Sized {
     fn with_f<K: Into<String>>(self, k: K, f: Box<TFunc>) -> Self;
+    fn with_fn<K: Into<String>>(self, k: K, f: TFn) -> Self {
+        self.with_f(k, Box::new(f))
+    }
 
     fn with_defaults(self) -> Self {
-        self.with_bools().with_strings()
+        self.with_bools().with_strings().with_math()
     }
 
     fn with_strings(self) -> Self {
-        self.with_f("cat", strings::cat())
-            .with_f("md", strings::md())
+        self.with_fn("cat", strings::cat).with_fn("md", strings::md)
+    }
+
+    fn with_math(self) -> Self {
+        self.with_fn("add", math::add)
+            .with_fn("sub", math::sub)
+            .with_fn("mul", math::mul)
+            .with_fn("div", math::div)
+            .with_fn("mod", math::modulo)
     }
 
     fn with_bools(self) -> Self {

@@ -132,25 +132,24 @@ impl TreeItem {
             TreeItem::For { k, v, p, b } => {
                 let looper = p.run(scope, tm, fm)?;
                 let mut res = String::new();
-                if let Some(keys) = looper.keys() {
-                    for kname in keys {
-                        let vval = looper.get_key(&kname).ok_or(Error::Str("Key Missing"))?;
-                        scope.set(k, TData::String(kname));
-                        scope.set(v, vval.clone());
-                        res.push_str(&run_block(&b, scope, tm, fm)?);
+                match looper {
+                    TData::Map(m) => {
+                        for (mapk, mapv) in m {
+                            scope.set(k, TData::String(mapk));
+                            scope.set(v, mapv.clone());
+                            res.push_str(&run_block(&b, scope, tm, fm)?);
+                        }
+                        Ok(res)
                     }
-                    Ok(res)
-                } else if let Some(len) = looper.len() {
-                    for pos in 0..len {
-                        let vval = looper.get_index(pos).ok_or(Error::Str("Key Missing"))?;
-                        scope.set(k, TData::UInt(pos));
-                        scope.set(v, vval.clone());
-                        res.push_str(&run_block(&b, scope, tm, fm)?);
+                    TData::List(l) => {
+                        for (listn, listv) in l.iter().enumerate() {
+                            scope.set(k, TData::UInt(listn));
+                            scope.set(v, listv.clone());
+                            res.push_str(&run_block(&b, scope, tm, fm)?);
+                        }
+                        Ok(res)
                     }
-                    Ok(res)
-                } else {
-                    //TODO try range object, Not sure how to handle this
-                    Err(Error::String(format!("Cannot loop on {:?}", looper)).into())
+                    _ => Err(ea_str("Cannot loop over non map or list")),
                 }
             }
             TreeItem::Block {
