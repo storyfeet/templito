@@ -3,6 +3,7 @@ use err::Error;
 use func_man::FuncManager;
 use scope::Scope;
 use temp_man::TempManager;
+use tparam::TParam;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Pipeline {
@@ -13,15 +14,16 @@ pub enum Pipeline {
 
 pub fn run_values<TM: TempManager, FM: FuncManager>(
     cname: &str,
-    args: &[&dyn TParam],
-    //scope: &Scope<D>,
+    args: &[TData],
     tm: &mut TM,
     fm: &FM,
 ) -> anyhow::Result<TData> {
-    if let Some(in_item) = TData::get_func(cname) {
-        return Ok(in_item(&args)?);
-    } else if let Some(in_tp) = tm.get_t(cname).map(|t| t.clone()) {
-        Ok(TData::String(in_tp.run(&args, tm, fm)?))
+    if let Some(in_tp) = tm.get_t(cname).map(|t| t.clone()) {
+        let v2: Vec<&dyn TParam> = Vec::new();
+        for a in args {
+            v2.push(a);
+        }
+        Ok(TData::String(in_tp.run(&v2, tm, fm)?))
     } else if let Some(in_f) = fm.get_func(&cname) {
         Ok(in_f(&args)?)
     } else {
@@ -39,9 +41,7 @@ pub fn run_command<TM: TempManager, FM: FuncManager>(
     if cname == "first_valid" {
         for p in args {
             if let Ok(res) = p.run(scope, tm, fm) {
-                if res.is_valid() {
-                    return Ok(res);
-                }
+                return Ok(res);
             }
         }
         return Err(Error::Str("No elements passed the existence test").into());
@@ -83,7 +83,7 @@ impl Pipeline {
     ) -> anyhow::Result<TData> {
         println!("Running = {:?}", self);
         match self {
-            Pipeline::Lit(v) => Ok(TData::parse_lit(&v)?),
+            Pipeline::Lit(v) => Ok(TData::from_str(&v)?),
             Pipeline::Var(v) => scope
                 .get(v)
                 .map(|v| v.clone())

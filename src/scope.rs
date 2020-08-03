@@ -1,6 +1,7 @@
 use crate::*;
 use std::collections::HashMap;
 use template::VarPart;
+use tparam::TParam;
 
 pub struct Scope<'a> {
     params: &'a [&'a dyn TParam],
@@ -19,20 +20,20 @@ impl<'a> Scope<'a> {
         self.maps.into_iter().next().unwrap_or(HashMap::new())
     }
 
-    pub fn param(&self, n: i32, path: &str) -> Option<TData> {
+    pub fn param(&self, n: usize, path: &str) -> Option<TData> {
         if n >= self.params.len() {
             return None;
         }
-        n.get_s_data(path)
+        (*self.params[n]).get_s(path)
     }
 
-    fn get_base(&'a self, vp: &VarPart) -> Option<&'a TData> {
+    fn get_base(&'a self, vp: &VarPart) -> Option<TData> {
         match vp {
-            VarPart::Num(n) => self.params.get(*n),
+            VarPart::Num(n) => self.params[0].get_s(""),
             VarPart::Id(s) => {
                 for x in 1..=self.maps.len() {
                     if let Some(v) = self.maps[self.maps.len() - x].get(s) {
-                        return Some(v);
+                        return Some(v.clone());
                     }
                 }
                 None

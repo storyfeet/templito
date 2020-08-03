@@ -1,13 +1,13 @@
 pub mod err;
 pub mod func_man;
 pub mod funcs;
-//pub mod impls;
 mod parser;
 mod pipeline;
 mod scope;
 pub mod temp_man;
 pub mod template;
 mod tests;
+pub mod tparam;
 use template::{TreeTemplate, VarPart};
 pub mod prelude;
 use std::cmp::Ordering;
@@ -20,7 +20,7 @@ pub enum TData {
     Bool(bool),
     String(String),
     Int(i64),
-    UInt(u64),
+    UInt(usize),
     Float(f64),
     List(Vec<TData>),
     Map(HashMap<String, TData>),
@@ -31,7 +31,6 @@ impl PartialOrd for TData {
         use TData::*;
         match (self, other) {
             (String(a), String(b)) => a.partial_cmp(b),
-            (Int(a), Int(b)) => a.partial,
         }
     }
 }
@@ -51,13 +50,12 @@ impl fmt::Display for TData {
     }
 }
 
-pub trait TParam {
-    fn get_s(&self, s: &str) -> Option<TData>;
-    fn get_u(&self, u: usize) -> Option<TData>;
-}
-
 impl TData {
     ///How the type will be created from the template
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        let v = s.parse::<serde_json::Value>()?;
+        Ok(Self::from_json(v))
+    }
 
     fn from_json(v: serde_json::Value) -> Self {
         use serde_json::Value as SV;
@@ -84,7 +82,7 @@ impl TData {
     ///Will be used for binary logic
     fn as_bool(&self) -> Option<bool> {
         match self {
-            TData::Bool(b) => Some(b),
+            TData::Bool(b) => Some(*b),
             _ => None,
         }
     }
@@ -92,7 +90,7 @@ impl TData {
     ///Return the usize value that will be used for lookups and indexing
     fn as_usize(&self) -> Option<usize> {
         match self {
-            TData::Usize(b) => Some(b),
+            TData::UInt(b) => Some(*b),
             _ => None,
         }
     }

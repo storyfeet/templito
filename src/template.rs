@@ -7,6 +7,7 @@ use pipeline::*;
 use scope::Scope;
 use std::collections::HashMap;
 use temp_man::TempManager;
+use tparam::TParam;
 
 pub type Block = Vec<TreeItem>;
 
@@ -110,7 +111,7 @@ impl TreeItem {
             }
             TreeItem::Pipe(p) => {
                 let pres = &p.run(&scope, tm, fm)?;
-                Ok(pres.as_str().map(String::from).unwrap_or(pres.to_string()))
+                Ok(pres.to_string())
             }
             TreeItem::If { cond, yes, no } => {
                 let pres = cond.run(&scope, tm, fm)?;
@@ -142,7 +143,7 @@ impl TreeItem {
                 } else if let Some(len) = looper.len() {
                     for pos in 0..len {
                         let vval = looper.get_index(pos).ok_or(Error::Str("Key Missing"))?;
-                        scope.set(k, TData::usize(pos));
+                        scope.set(k, TData::UInt(pos));
                         scope.set(v, vval.clone());
                         res.push_str(&run_block(&b, scope, tm, fm)?);
                     }
@@ -163,7 +164,7 @@ impl TreeItem {
                 for p in params {
                     v.push(p.run(scope, tm, fm)?);
                 }
-                Ok(pipeline::run_values::<TM, FM>(command, &v, tm, fm)?.string_it())
+                Ok(pipeline::run_values::<TM, FM>(command, &v, tm, fm)?.to_string())
             }
             TreeItem::AtLet(name, block) => {
                 let ch = run_block(block, scope, tm, fm)?;
@@ -172,7 +173,7 @@ impl TreeItem {
             }
             TreeItem::AtExport(name, block) => {
                 let ch = run_block(block, scope, tm, fm)?;
-                scope.set_root(name, TData::Dtring(ch));
+                scope.set_root(name, TData::String(ch));
                 Ok(String::new())
             }
         }

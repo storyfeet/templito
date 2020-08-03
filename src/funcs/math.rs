@@ -12,25 +12,26 @@ pub fn fold<T: Clone, F: Fn(T, &T) -> anyhow::Result<T>>(l: &[T], f: F) -> anyho
     Ok(res)
 }
 
-pub enum Match {
-    U(u64, u64),
+pub enum NumMatch {
+    U(usize, usize),
     I(i64, i64),
     F(f64, f64),
 }
 
-fn num_match(a: &TData, b: &TData) -> Option<Match> {
-    use Match::*;
-    match (a, b) {
-        (TData::UInt(a), TData::UInt(b)) => Some(U(*a, *b)),
-        (TData::UInt(a), TData::Int(b)) => I(*a as i64, b),
-        (TData::UInt(a), TData::Float(b)) => F(a as f64, b),
-        (TData::Int(a), TData::UInt(b)) => I(a, b),
-        (TData::Int(a), TData::Int(b)) => U(a, b),
-        (TData::Int(a), TData::Float(b)) => F(a, b),
-        (TData::Float(a), TData::UInt(b)) => F(a, b),
-        (TData::Float(a), TData::Int(b)) => F(a, b),
-        (TData::Float(a), TData::Float(b)) => F(a, b),
-    }
+fn num_match(a: &TData, b: &TData) -> Option<NumMatch> {
+    use NumMatch::*;
+    Some(match (a, b) {
+        (TData::UInt(a), TData::UInt(b)) => U(*a, *b),
+        (TData::UInt(a), TData::Int(b)) => I(*a as i64, *b),
+        (TData::UInt(a), TData::Float(b)) => F(*a as f64, *b),
+        (TData::Int(a), TData::UInt(b)) => I(*a, *b as i64),
+        (TData::Int(a), TData::Int(b)) => I(*a, *b),
+        (TData::Int(a), TData::Float(b)) => F(*a as f64, *b),
+        (TData::Float(a), TData::UInt(b)) => F(*a, *b as f64),
+        (TData::Float(a), TData::Int(b)) => F(*a, *b as f64),
+        (TData::Float(a), TData::Float(b)) => F(*a, *b),
+        _ => return None,
+    })
 }
 
 fn add(l: &[TData]) -> anyhow::Result<TData> {

@@ -18,56 +18,56 @@ fn do_dir<P: AsRef<Path>>(p: P) -> anyhow::Result<TData> {
         let p = r.path();
         let fname = ea_op(p.file_name(), "No filename")?;
         let fname = ea_op(fname.to_str(), "Not OS String")?;
-        res.push(TData::String(fname));
+        res.push(TData::String(String::from(fname)));
     }
-    return ea_op(TData::List(res), "Could not make list");
+    Ok(TData::List(res))
 }
 
 pub fn is_file(pb: PathBuf) -> Box<TFunc> {
     Box::new(move |l| {
         for d in l {
-            let sp = ea_op(safe_path(&pb, &d.string_it()), "No safe path")?;
+            let sp = ea_op(safe_path(&pb, &d.to_string()), "No safe path")?;
             match std::fs::metadata(&sp) {
                 Ok(md) => {
                     if !md.is_file() {
-                        return Ok(TData::bool(false));
+                        return Ok(TData::Bool(false));
                     }
                 }
-                Err(_) => return Ok(TData::bool(false)),
+                Err(_) => return Ok(TData::Bool(false)),
             }
         }
-        return Ok(TData::bool(true));
+        return Ok(TData::Bool(true));
     })
 }
 pub fn is_dir(pb: PathBuf) -> Box<TFunc> {
     Box::new(move |l| {
         for d in l {
-            let sp = ea_op(safe_path(&pb, &d.string_it()), "No safe path")?;
+            let sp = ea_op(safe_path(&pb, &d.to_string()), "No safe path")?;
             match std::fs::metadata(&sp) {
                 Ok(md) => {
                     if !md.is_dir() {
-                        return Ok(TData::bool(false));
+                        return Ok(TData::Bool(false));
                     }
                 }
-                Err(_) => return Ok(TData::bool(false)),
+                Err(_) => return Ok(TData::Bool(false)),
             }
         }
-        return Ok(TData::bool(true));
+        return Ok(TData::Bool(true));
     })
 }
 
 pub fn dir(pb: PathBuf) -> Box<TFunc> {
     Box::new(move |l| {
         if l.len() == 1 {
-            let sp = ea_op(safe_path(&pb, &l[0].string_it()), "Broken File path")?;
+            let sp = ea_op(safe_path(&pb, &l[0].to_string()), "Broken File path")?;
             return do_dir(sp);
         }
         let mut v = Vec::new();
         for d in l {
-            let sp = ea_op(safe_path(&pb, &d.string_it()), "Broken File path")?;
+            let sp = ea_op(safe_path(&pb, &d.to_string()), "Broken File path")?;
             v.push(do_dir(&sp)?);
         }
-        Ok(ea_op(TData::list(v), "Cannot make list")?)
+        Ok(TData::List(v))
     })
 }
 
@@ -75,7 +75,7 @@ pub fn file(pb: PathBuf) -> Box<TFunc> {
     Box::new(move |l| {
         let mut res = String::new();
         for d in l {
-            let sp = ea_op(safe_path(&pb, &d.string_it()), "Broken File path")?;
+            let sp = ea_op(safe_path(&pb, &d.to_string()), "Broken File path")?;
             let mut f = std::fs::File::open(sp)?;
             f.read_to_string(&mut res)?;
         }
@@ -87,8 +87,8 @@ pub fn join() -> Box<TFunc> {
     Box::new(|l| {
         let mut res = PathBuf::new();
         for r in l {
-            res.push(r.string_it())
+            res.push(r.to_string())
         }
-        Ok(TData::string(&res.display().to_string()))
+        Ok(TData::String(res.display().to_string()))
     })
 }
