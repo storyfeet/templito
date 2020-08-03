@@ -10,11 +10,12 @@ pub mod template;
 mod tests;
 use template::{TreeTemplate, VarPart};
 pub mod prelude;
+use std::cmp::Ordering;
 use std::collections::HashMap;
 
 use std::fmt;
 
-#[derive(Clone, Debug, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum TData {
     Bool(bool),
     String(String),
@@ -23,6 +24,16 @@ pub enum TData {
     Float(f64),
     List(Vec<TData>),
     Map(HashMap<String, TData>),
+}
+
+impl PartialOrd for TData {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        use TData::*;
+        match (self, other) {
+            (String(a), String(b)) => a.partial_cmp(b),
+            (Int(a), Int(b)) => a.partial,
+        }
+    }
 }
 
 impl fmt::Display for TData {
@@ -41,8 +52,8 @@ impl fmt::Display for TData {
 }
 
 pub trait TParam {
-    fn get_s(s: &str) -> Option<TData>;
-    fn get_u(u: usize) -> Option<TData>;
+    fn get_s(&self, s: &str) -> Option<TData>;
+    fn get_u(&self, u: usize) -> Option<TData>;
 }
 
 impl TData {

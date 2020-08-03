@@ -12,16 +12,16 @@ pub fn fold<T: Clone, F: Fn(T, &T) -> anyhow::Result<T>>(l: &[T], f: F) -> anyho
     Ok(res)
 }
 
-pub enum Numbers {
+pub enum Match {
     U(u64, u64),
     I(i64, i64),
     F(f64, f64),
 }
 
-fn num_match(a: &TData, b: TData) {
-    use Numbers::*;
+fn num_match(a: &TData, b: &TData) -> Option<Match> {
+    use Match::*;
     match (a, b) {
-        (TData::UInt(a), TData::UInt(b)) => U(a, b),
+        (TData::UInt(a), TData::UInt(b)) => Some(U(*a, *b)),
         (TData::UInt(a), TData::Int(b)) => I(*a as i64, b),
         (TData::UInt(a), TData::Float(b)) => F(a as f64, b),
         (TData::Int(a), TData::UInt(b)) => I(a, b),
