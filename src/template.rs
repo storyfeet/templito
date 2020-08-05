@@ -65,6 +65,14 @@ pub enum VarPart {
     Num(usize),
     Id(String),
 }
+impl VarPart {
+    pub fn as_str(&self) -> Option<&str> {
+        match self {
+            VarPart::Num(_) => None,
+            VarPart::Id(s) => Some(s),
+        }
+    }
+}
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct FlatTemplate {

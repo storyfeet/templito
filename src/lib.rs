@@ -85,6 +85,23 @@ impl TData {
         }
     }
 
+    pub fn from_toml(v: toml::Value) -> Self {
+        use toml::Value as TV;
+        match v {
+            TV::String(s) => Self::String(s),
+            TV::Integer(n) => Self::Int(n),
+            TV::Float(f) => Self::Float(f),
+            TV::Boolean(b) => Self::Bool(b),
+            TV::Array(a) => Self::List(a.into_iter().map(|v| TData::from_toml(v)).collect()),
+            TV::Table(m) => Self::Map(
+                m.into_iter()
+                    .map(|(k, v)| (k, TData::from_toml(v)))
+                    .collect(),
+            ),
+            TV::Datetime(dt) => Self::String(dt.to_string()),
+        }
+    }
+
     ///Will be used for binary logic
     fn as_bool(&self) -> Option<bool> {
         match self {

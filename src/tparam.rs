@@ -17,6 +17,27 @@ impl TParam for TData {
     }
 }
 
+impl TParam for toml::Value {
+    fn get_v<'a>(&'a self, l: &[VarPart]) -> Option<TData> {
+        use toml::Value as TV;
+        if l.len() == 0 {
+            return Some(TData::from_toml(self.clone()));
+        }
+        match (self, &l[0]) {
+            (TV::Table(m), VarPart::Id(k)) => {
+                let vp = m.get(k)?.get_v(&l[1..])?;
+                Some(vp)
+            }
+
+            (TV::Array(m), VarPart::Num(k)) => {
+                let vp = m.get(*k)?.get_v(&l[1..])?;
+                Some(vp)
+            }
+            _ => None,
+        }
+    }
+}
+
 impl TParam for serde_json::Value {
     fn get_v<'a>(&'a self, l: &[VarPart]) -> Option<TData> {
         use serde_json::Value as SV;
