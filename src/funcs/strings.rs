@@ -1,4 +1,5 @@
 use crate::*;
+use err::*;
 use pulldown_cmark as mdown;
 pub fn cat(l: &[TData]) -> anyhow::Result<TData> {
     let mut r_str = String::new();
@@ -20,4 +21,15 @@ pub fn md(l: &[TData]) -> anyhow::Result<TData> {
         mdown::html::push_html(&mut r_str, p);
     }
     Ok(TData::String(r_str))
+}
+
+pub fn table(l: &[TData]) -> anyhow::Result<TData> {
+    if l.len() == 0 {
+        return Err(ea_str("Table requires 1 or two string entries."));
+    }
+    let tdata = match l.get(1) {
+        Some(v) => v.to_string(),
+        None => String::new(),
+    };
+    super::table::table(&l[0].to_string(), &tdata).map(|s| TData::String(s))
 }

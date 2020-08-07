@@ -106,6 +106,10 @@ impl TData {
     fn as_bool(&self) -> Option<bool> {
         match self {
             TData::Bool(b) => Some(*b),
+            TData::String(s) => Some(s.len() > 0),
+            TData::UInt(u) => Some(*u > 0),
+            TData::Int(i) => Some(*i != 0),
+            TData::Float(f) => Some(*f != 0.),
             _ => None,
         }
     }
@@ -114,26 +118,23 @@ impl TData {
     fn as_usize(&self) -> Option<usize> {
         match self {
             TData::UInt(b) => Some(*b),
+            TData::Int(n) if *n >= 0 => Some(*n as usize),
             _ => None,
         }
     }
 
-    ///The len will be used in for loops when the value can be treated as an array
-    ///Return None if the item cannot be indexed like an array
-    fn len(&self) -> Option<usize> {
-        None
-    }
-    ///This is used with 'keys' by for loops
-    fn get_key<'a>(&'a self, s: &str) -> Option<&'a Self> {
+    pub fn get_key_str<'a>(&'a self, k: &str) -> Option<&'a str> {
         match self {
-            TData::Map(m) => m.get(s),
+            TData::Map(m) => match m.get(k) {
+                Some(TData::String(ref s)) => Some(s),
+                _ => None,
+            },
             _ => None,
         }
     }
-    ///This is used by for loops
-    fn get_index<'a>(&'a self, n: usize) -> Option<&'a Self> {
+    pub fn get_key_string(&self, k: &str) -> Option<String> {
         match self {
-            TData::List(l) => l.get(n),
+            TData::Map(m) => m.get(k).map(|d| d.to_string()),
             _ => None,
         }
     }

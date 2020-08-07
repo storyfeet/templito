@@ -1,6 +1,7 @@
 use crate::*;
+use std::fmt::Debug;
 
-pub trait TParam {
+pub trait TParam: Debug {
     fn get_v<'a>(&'a self, s: &[VarPart]) -> Option<TData>;
 }
 

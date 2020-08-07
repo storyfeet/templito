@@ -2,7 +2,7 @@
 
 use crate::*;
 use pipeline::*;
-use serde_json::{Number, Value};
+use serde_json::Value;
 use std::str::FromStr;
 use template::*;
 
@@ -31,7 +31,7 @@ fn test_fancy() {
     assert_eq!(tt.v[2], TreeItem::String("More words".to_string()));
     assert_eq!(tt.v[4], TreeItem::String("LastBit".to_string()));
     match &tt.v[3] {
-        TreeItem::If { cond, yes, no } => {
+        TreeItem::If { cond, .. } => {
             assert_eq!(cond, &Pipeline::Var(vec![VarPart::Num(0)]));
         }
         e => panic!("Expected 'if' got {:?}", e),

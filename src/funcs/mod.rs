@@ -8,6 +8,7 @@ mod bools;
 mod folder;
 mod math;
 mod strings;
+mod table;
 
 pub trait WithFuncs: Sized {
     fn with_f<K: Into<String>>(self, k: K, f: Box<TFunc>) -> Self;
@@ -20,7 +21,9 @@ pub trait WithFuncs: Sized {
     }
 
     fn with_strings(self) -> Self {
-        self.with_fn("cat", strings::cat).with_fn("md", strings::md)
+        self.with_fn("cat", strings::cat)
+            .with_fn("md", strings::md)
+            .with_fn("table", strings::table)
     }
 
     fn with_math(self) -> Self {

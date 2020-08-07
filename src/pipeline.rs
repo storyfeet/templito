@@ -18,7 +18,7 @@ pub fn run_values<TM: TempManager, FM: FuncManager>(
     tm: &mut TM,
     fm: &FM,
 ) -> anyhow::Result<TData> {
-    if let Some(in_tp) = tm.get_t(cname).map(|t| t.clone()) {
+    if let Ok(in_tp) = tm.get_t(cname).map(|t| t.clone()) {
         let mut v2: Vec<&dyn TParam> = Vec::new();
         for a in args {
             v2.push(a);
@@ -70,7 +70,6 @@ pub fn run_command<TM: TempManager, FM: FuncManager>(
     let mut v = Vec::new();
     for p in args {
         let pval = p.run(scope, tm, fm)?;
-        //println!("Param value = {:?}", pval);
         v.push(pval);
     }
     run_values(cname, &v, tm, fm)
@@ -83,7 +82,6 @@ impl Pipeline {
         tm: &mut TM,
         fm: &FM,
     ) -> anyhow::Result<TData> {
-        println!("Running = {:?}", self);
         match self {
             Pipeline::Lit(v) => Ok(TData::from_str(&v)?),
             Pipeline::Var(v) => scope

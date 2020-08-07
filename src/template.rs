@@ -122,18 +122,15 @@ impl TreeItem {
                 Ok(pres.to_string())
             }
             TreeItem::If { cond, yes, no } => {
-                let pres = cond.run(&scope, tm, fm)?;
+                let pres = cond.run(&scope, tm, fm).unwrap_or(TData::Null);
                 match pres.as_bool() {
                     Some(true) => run_block(yes, scope, tm, fm),
-                    Some(false) => {
+                    _ => {
                         if let Some(n) = no {
                             run_block(n, scope, tm, fm)
                         } else {
                             Ok(String::new())
                         }
-                    }
-                    None => {
-                        return Err(Error::String(format!("Cannot treat {:?} as Bool", pres)).into())
                     }
                 }
             }

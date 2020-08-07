@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use template::VarPart;
 use tparam::TParam;
 
+#[derive(Debug)]
 pub struct Scope<'a> {
     params: &'a [&'a dyn TParam],
     maps: Vec<HashMap<String, TData>>,
@@ -27,8 +28,9 @@ impl<'a> Scope<'a> {
         match &v[0] {
             VarPart::Num(n) => self.params.get(*n)?.get_v(&v[1..]),
             VarPart::Id(s) => {
-                for i in 0..v.len() {
-                    if let Some(base) = self.maps[v.len() - 1 - i].get(s) {
+                for i in 0..self.maps.len() {
+                    let vpos = self.maps.len() - 1 - i;
+                    if let Some(base) = self.maps[vpos].get(s) {
                         return base.get_v(&v[1..]);
                     }
                 }

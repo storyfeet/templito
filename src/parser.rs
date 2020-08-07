@@ -29,6 +29,7 @@ parser! {(Pipe->Pipeline)
         middle(wn_('('),wn__(Pipe),')'),
         ('$',sep_star(Var,'.')).map(|(_,p)|Pipeline::Var(p)),
         ('@').map(|_| Pipeline::Var(vec![VarPart::Id("@".to_string())])),
+        ('>',(Alpha,NumDigit,"._").plus(),star(wn__(Pipe))).map(|(_,c,v)|Pipeline::Command(c,v)),
         (Ident,star(wn__(Pipe))).map(|(c,v)|Pipeline::Command(c,v)),
         string(Quoted).map(|v|Pipeline::Lit(v)),
         SingleQuotes.map(|v|Pipeline::Lit(v)),
@@ -63,6 +64,6 @@ parser! {(Item->FlatItem)
             (wn_('@'),Ident,star(wn__(Pipe))).map(|(_,s,b)|FlatItem::Block(s,b)),
             (wn_('/'),Ident,WS.star()).map(|(_,n,_)|FlatItem::EndBlock(n)),
             wn__(Pipe).map(|p|FlatItem::Pipe(p)),
-    ),"}}")
+    ).brk(),"}}".brk())
         .or(strings_plus_until(StringItem,peek(or_ig!("{{",eoi))).map(|(s,_)|FlatItem::String(s)))
 }
