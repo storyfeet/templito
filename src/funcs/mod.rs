@@ -5,6 +5,7 @@ use func_man::*;
 use std::path::PathBuf;
 
 mod bools;
+mod file;
 mod folder;
 mod math;
 mod strings;
@@ -17,7 +18,7 @@ pub trait WithFuncs: Sized {
     }
 
     fn with_defaults(self) -> Self {
-        self.with_bools().with_strings().with_math()
+        self.with_bools().with_strings().with_math().with_files()
     }
 
     fn with_strings(self) -> Self {
@@ -42,6 +43,14 @@ pub trait WithFuncs: Sized {
             .with_fn("lte", bools::lte)
             .with_fn("and", bools::and)
             .with_fn("or", bools::or)
+    }
+
+    fn with_files(self) -> Self {
+        self.with_fn("parent", file::parent)
+            .with_fn("join", file::join)
+            .with_fn("bread_crumbs", file::bread_crumbs)
+            .with_fn("base_name", file::base_name)
+            .with_fn("base_name_sure", file::base_name_sure)
     }
 
     fn with_folder_lock<P: Into<PathBuf>>(self, pb: P) -> Self {

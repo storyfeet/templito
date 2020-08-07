@@ -38,7 +38,7 @@ pub fn run_command<TM: TempManager, FM: FuncManager>(
     tm: &mut TM,
     fm: &FM,
 ) -> anyhow::Result<TData> {
-    if cname == "first_valid" {
+    if cname == "first" {
         for p in args {
             if let Ok(res) = p.run(scope, tm, fm) {
                 if res != TData::Null {

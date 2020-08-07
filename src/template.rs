@@ -163,6 +163,15 @@ impl TreeItem {
                 block,
             } => {
                 let ch = run_block(block, scope, tm, fm)?;
+                if params.len() == 0 {
+                    return Ok(pipeline::run_values::<TM, FM>(
+                        command,
+                        &vec![TData::String(ch)],
+                        tm,
+                        fm,
+                    )?
+                    .to_string());
+                }
                 scope.set("@", TData::String(ch));
                 let mut v = vec![];
                 for p in params {

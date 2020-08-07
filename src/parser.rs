@@ -46,7 +46,7 @@ parser! {(StringItem->String)
 }
 
 parser! {(Assign->(String,Pipeline))
-    (wn_(Ident),wn_("="),wn_(Pipe)).map(|(a,_,v)|(a,v))
+    (wn_(Ident),wn_("="),wn_(Pipe),(ws_(or_ig!(';','\n',peek('}'))),"\n \t".star())).map(|(a,_,v,_)|(a,v))
 }
 
 parser! {(Item->FlatItem)
@@ -57,13 +57,13 @@ parser! {(Item->FlatItem)
             (wn_(keyword("if")),wn__(Pipe)).map(|(_,p)|FlatItem::If(p)),
             (wn_(keyword("elif")),wn__(Pipe)).map(|(_,p)|FlatItem::Elif(p)),
             (wn_(keyword("for")),wn_(Ident),wn_(Ident),wn_(keyword("in")),wn__(Pipe)).map(|(_,k,v,_,p)| FlatItem::For(k,v,p)),
-            (wn_(keyword("let")),sep_plus(Assign,wn_(";"))).map(|(_,v)|FlatItem::Let(v)),
-            (wn_(keyword("export")),sep_plus(Assign,wn_(";"))).map(|(_,v)|FlatItem::Export(v)),
+            (wn_(keyword("let")),plus(Assign)).map(|(_,v)|FlatItem::Let(v)),
+            (wn_(keyword("export")),plus(Assign)).map(|(_,v)|FlatItem::Export(v)),
             (wn_(keyword("@let")),wn_(Ident)).map(|(_,n)|FlatItem::AtLet(n)),
             (wn_(keyword("@export")),wn_(Ident)).map(|(_,n)|FlatItem::AtExport(n)),
-            (wn_('@'),Ident,star(wn__(Pipe))).map(|(_,s,b)|FlatItem::Block(s,b)),
+            (wn_('@'),Ident," \t\n".istar(),star(wn__(Pipe))).map(|(_,s,_,b)|FlatItem::Block(s,b)),
             (wn_('/'),Ident,WS.star()).map(|(_,n,_)|FlatItem::EndBlock(n)),
             wn__(Pipe).map(|p|FlatItem::Pipe(p)),
-    ).brk(),"}}".brk())
+    ).brk(),wn_("}}").brk())
         .or(strings_plus_until(StringItem,peek(or_ig!("{{",eoi))).map(|(s,_)|FlatItem::String(s)))
 }
