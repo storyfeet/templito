@@ -51,6 +51,7 @@ pub trait WithFuncs: Sized {
             .with_fn("bread_crumbs", file::bread_crumbs)
             .with_fn("base_name", file::base_name)
             .with_fn("base_name_sure", file::base_name_sure)
+            .with_fn("with_ext", file::with_ext)
     }
 
     fn with_folder_lock<P: Into<PathBuf>>(self, pb: P) -> Self {

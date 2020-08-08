@@ -53,3 +53,12 @@ pub fn base_name_sure(args: &[TData]) -> anyhow::Result<TData> {
             .to_string(),
     ))
 }
+
+pub fn with_ext(args: &[TData]) -> anyhow::Result<TData> {
+    if args.len() < 2 {
+        return Err(ea_str("'with_ext' requires a filenae then an extension"));
+    }
+    let p = PathBuf::from(args[0].to_string());
+    let pe = p.with_extension(args[1].to_string());
+    Ok(path_dat(&pe))
+}
