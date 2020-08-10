@@ -5,6 +5,7 @@ use func_man::*;
 use std::path::PathBuf;
 
 mod bools;
+mod exec;
 mod file;
 mod folder;
 mod math;
@@ -61,6 +62,11 @@ pub trait WithFuncs: Sized {
             .with_f("is_file", folder::is_file(pb.clone()))
             .with_f("is_dir", folder::is_dir(pb.clone()))
             .with_f("join", folder::join())
+    }
+
+    fn with_exec(self) -> Self {
+        self.with_fn("exec", exec::exec)
+            .with_fn("exec_stdin", exec::exec_stdin)
     }
 }
 
