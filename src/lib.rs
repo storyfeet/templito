@@ -63,6 +63,13 @@ impl TData {
         Ok(Self::from_json(v))
     }
 
+    fn as_str(&self) -> Option<&str> {
+        match self {
+            TData::String(s) => Some(s),
+            _ => None,
+        }
+    }
+
     fn from_json(v: serde_json::Value) -> Self {
         use serde_json::Value as SV;
         match v {

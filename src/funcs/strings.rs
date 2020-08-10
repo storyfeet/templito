@@ -12,6 +12,22 @@ pub fn cat(l: &[TData]) -> anyhow::Result<TData> {
     Ok(TData::String(r_str))
 }
 
+pub fn split(l: &[TData]) -> anyhow::Result<TData> {
+    if l.len() == 0 {
+        return Err(ea_str("Nothing to split"));
+    }
+    let splitter = l.get(1).and_then(|n| n.as_str()).unwrap_or("\n");
+    l[0].as_str()
+        .ok_or(ea_str("To split Must be a string"))
+        .map(|v| {
+            TData::List(
+                v.split(splitter)
+                    .map(|s| TData::String(s.to_string()))
+                    .collect(),
+            )
+        })
+}
+
 pub fn md(l: &[TData]) -> anyhow::Result<TData> {
     let mut r_str = String::new();
     for s in l {

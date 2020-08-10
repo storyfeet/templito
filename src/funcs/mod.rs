@@ -26,6 +26,7 @@ pub trait WithFuncs: Sized {
         self.with_fn("cat", strings::cat)
             .with_fn("md", strings::md)
             .with_fn("table", strings::table)
+            .with_fn("split", strings::split)
     }
 
     fn with_math(self) -> Self {
