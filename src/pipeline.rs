@@ -38,6 +38,21 @@ pub fn run_command<TM: TempManager, FM: FuncManager>(
     tm: &mut TM,
     fm: &FM,
 ) -> anyhow::Result<TData> {
+    if cname == "run" {
+        println!("Running run");
+        let mut tds = Vec::new();
+        for p in args {
+            tds.push(p.run(scope, tm, fm)?);
+        }
+        //Convert TParams to pointers to call the Template
+        let mut v: Vec<&dyn TParam> = Vec::new();
+        for p in &tds[1..] {
+            v.push(p);
+        }
+        if let Some(TData::Template(t)) = tds.get(0) {
+            return Ok(TData::String(t.run(&v, tm, fm)?));
+        }
+    }
     if cname == "first" {
         for p in args {
             if let Ok(res) = p.run(scope, tm, fm) {

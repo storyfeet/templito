@@ -24,6 +24,7 @@ pub enum TData {
     Float(f64),
     List(Vec<TData>),
     Map(HashMap<String, TData>),
+    Template(TreeTemplate),
     Null,
 }
 
@@ -52,6 +53,7 @@ impl fmt::Display for TData {
             List(v) => write!(f, "{:?}", v),
             Map(m) => write!(f, "{:?}", m),
             Null => write!(f, "NULL"),
+            Template(_t) => write!(f, "TEMPLATE"),
         }
     }
 }

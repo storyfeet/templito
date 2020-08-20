@@ -57,6 +57,7 @@ parser! {(Item->FlatItem)
             (wn_(keyword("if")),wn__(Pipe)).map(|(_,p)|FlatItem::If(p)),
             (wn_(keyword("elif")),wn__(Pipe)).map(|(_,p)|FlatItem::Elif(p)),
             (wn_(keyword("for")),wn_(Ident),wn_(Ident),wn_(keyword("in")),wn__(Pipe)).map(|(_,k,v,_,p)| FlatItem::For(k,v,p)),
+            (wn_(keyword("define")),wn__(Ident)).map(|(_,n)|FlatItem::Define(n)),
             (wn_(keyword("let")),plus(Assign)).map(|(_,v)|FlatItem::Let(v)),
             (wn_(keyword("export")),plus(Assign)).map(|(_,v)|FlatItem::Export(v)),
             (wn_(keyword("@let")),wn_(Ident)).map(|(_,n)|FlatItem::AtLet(n)),

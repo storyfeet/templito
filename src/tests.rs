@@ -85,7 +85,7 @@ fn test_for_array() {
 fn test_first_sel() {
     let tt = TreeTemplate::from_str(
         r#"{{select $0 "MOO", "NOO"}} is\    
-        \ {{select $1 'null' $10 $2 $3}} {{first_valid $10 'null' $3}} "#,
+        \ {{select $1 'null' $10 $2 $3}} {{first $10 'null' $3}} "#,
     )
     .unwrap();
 
@@ -135,4 +135,14 @@ fn test_at_can_be_used_in_params() {
     let res = tt.run(&[&"is for"], &mut tm, &fm).unwrap();
 
     assert_eq!(res, "Food is for noobs!!");
+}
+
+#[test]
+fn test_can_call_defined_func() {
+    let tt = TreeTemplate::from_str(r#"{{define good}}{{$0}} > {{$1}}{{/define}}{{run good 3 4}}"#)
+        .unwrap();
+    let mut tm = temp_man::BasicTemps::new();
+    let fm = func_man::default_func_man();
+    let res = tt.run(&[&"is for"], &mut tm, &fm).unwrap();
+    assert_eq!(res, "3 > 4");
 }

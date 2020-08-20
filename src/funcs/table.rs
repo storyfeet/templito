@@ -2,7 +2,7 @@ use gobble::*;
 use std::fmt::Write;
 
 pub fn table(s: &str, data: &str) -> anyhow::Result<String> {
-    let tres = super::table::Table.parse_s(s)?;
+    let tres = super::table::Table.parse_s(s).map_err(|e| e.strung())?;
     Ok(format!("<table {}>\n{}</table>\n", data, tres))
 }
 

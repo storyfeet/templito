@@ -31,6 +31,7 @@ pub enum TreeItem {
         p: Pipeline,
         b: Block,
     },
+    Define(String, Block),
     Let(Vec<(String, Pipeline)>),
     Export(Vec<(String, Pipeline)>),
     AtLet(String, Block),
@@ -52,6 +53,7 @@ pub enum FlatItem {
     For(String, String, Pipeline),
     AtLet(String),
     AtExport(String),
+    Define(String),
     Let(Vec<(String, Pipeline)>),
     Export(Vec<(String, Pipeline)>),
     Block(String, Vec<Pipeline>),
@@ -189,6 +191,10 @@ impl TreeItem {
                 scope.set_root(name, TData::String(ch));
                 Ok(String::new())
             }
+            TreeItem::Define(name, block) => {
+                scope.set(name, TData::Template(TreeTemplate { v: block.clone() }));
+                Ok(String::new())
+            }
         }
     }
 }
@@ -227,6 +233,8 @@ pub fn tt_basic<I: Iterator<Item = FlatItem>>(fi: FlatItem, it: &mut I) -> Resul
         FlatItem::AtLet(v) => TreeItem::AtLet(v, tt_name_block("let", it)?),
         FlatItem::Export(v) => TreeItem::Export(v),
         FlatItem::AtExport(v) => TreeItem::AtExport(v, tt_name_block("let", it)?),
+
+        FlatItem::Define(v) => TreeItem::Define(v, tt_name_block("define", it)?),
         FlatItem::If(p) => tt_if_yes(p, it)?,
         FlatItem::For(k, v, p) => TreeItem::For {
             k,
@@ -331,13 +339,13 @@ impl FlatTemplate {
 impl std::str::FromStr for TreeTemplate {
     type Err = anyhow::Error;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let flat = TFile.parse_s(s).map_err(|e| e.strung(s.to_string()))?;
+        let flat = TFile.parse_s(s).map_err(|e| e.strung())?;
         flat.to_tree().map_err(|e| e.into())
     }
 }
 impl std::str::FromStr for FlatTemplate {
     type Err = gobble::StrungError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        TFile.parse_s(s).map_err(|e| e.strung(s.to_string()))
+        TFile.parse_s(s).map_err(|e| e.strung())
     }
 }
