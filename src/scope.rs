@@ -1,7 +1,7 @@
 use crate::*;
 use std::collections::HashMap;
 use template::VarPart;
-use tparam::TParam;
+use tparam::*;
 
 #[derive(Debug)]
 pub struct Scope<'a> {
@@ -21,7 +21,7 @@ impl<'a> Scope<'a> {
         self.maps.into_iter().next().unwrap_or(HashMap::new())
     }
 
-    pub fn get<'b>(&'b self, v: &[VarPart]) -> Option<TData> {
+    pub fn get<'b>(&'b self, v: &[VarPart]) -> Bop<'b> {
         if v.len() == 0 {
             return None;
         }

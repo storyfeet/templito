@@ -1,3 +1,4 @@
+pub mod boco;
 pub mod err;
 pub mod func_man;
 pub mod funcs;

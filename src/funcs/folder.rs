@@ -1,8 +1,10 @@
 use crate::*;
+use boco::*;
 use err::*;
 use func_man::*;
 use std::io::Read;
 use std::path::{Path, PathBuf};
+use tparam::*;
 
 fn safe_path(p: &Path, s: &str) -> Option<PathBuf> {
     let pres = p.join(s);
@@ -12,7 +14,7 @@ fn safe_path(p: &Path, s: &str) -> Option<PathBuf> {
     None
 }
 
-fn do_dir<P: AsRef<Path>>(p: P) -> anyhow::Result<TData> {
+fn do_dir<'a, P: AsRef<Path>>(p: P) -> anyhow::Result<TBoco<'a>> {
     let mut res = Vec::new();
     for r in std::fs::read_dir(p)?.filter_map(|s| s.ok()) {
         let p = r.path();
@@ -20,7 +22,7 @@ fn do_dir<P: AsRef<Path>>(p: P) -> anyhow::Result<TData> {
         let fname = ea_op(fname.to_str(), "Not OS String")?;
         res.push(TData::String(String::from(fname)));
     }
-    Ok(TData::List(res))
+    b_ok(TData::List(res))
 }
 
 pub fn is_file(pb: PathBuf) -> Box<TFunc> {
@@ -30,13 +32,13 @@ pub fn is_file(pb: PathBuf) -> Box<TFunc> {
             match std::fs::metadata(&sp) {
                 Ok(md) => {
                     if !md.is_file() {
-                        return Ok(TData::Bool(false));
+                        return b_ok(TData::Bool(false));
                     }
                 }
-                Err(_) => return Ok(TData::Bool(false)),
+                Err(_) => return b_ok(TData::Bool(false)),
             }
         }
-        return Ok(TData::Bool(true));
+        return b_ok(TData::Bool(true));
     })
 }
 pub fn is_dir(pb: PathBuf) -> Box<TFunc> {
@@ -46,13 +48,13 @@ pub fn is_dir(pb: PathBuf) -> Box<TFunc> {
             match std::fs::metadata(&sp) {
                 Ok(md) => {
                     if !md.is_dir() {
-                        return Ok(TData::Bool(false));
+                        return b_ok(TData::Bool(false));
                     }
                 }
-                Err(_) => return Ok(TData::Bool(false)),
+                Err(_) => return b_ok(TData::Bool(false)),
             }
         }
-        return Ok(TData::Bool(true));
+        return b_ok(TData::Bool(true));
     })
 }
 
@@ -65,9 +67,9 @@ pub fn dir(pb: PathBuf) -> Box<TFunc> {
         let mut v = Vec::new();
         for d in l {
             let sp = ea_op(safe_path(&pb, &d.to_string()), "Broken File path")?;
-            v.push(do_dir(&sp)?);
+            v.push(do_dir(&sp)?.concrete());
         }
-        Ok(TData::List(v))
+        b_ok(TData::List(v))
     })
 }
 
@@ -79,7 +81,7 @@ pub fn file(pb: PathBuf) -> Box<TFunc> {
             let mut f = std::fs::File::open(sp)?;
             f.read_to_string(&mut res)?;
         }
-        Ok(TData::String(res))
+        b_ok(TData::String(res))
     })
 }
 
@@ -89,6 +91,6 @@ pub fn join() -> Box<TFunc> {
         for r in l {
             res.push(r.to_string())
         }
-        Ok(TData::String(res.display().to_string()))
+        b_ok(TData::String(res.display().to_string()))
     })
 }

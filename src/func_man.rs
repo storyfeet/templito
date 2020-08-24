@@ -2,9 +2,10 @@ use crate::*;
 use funcs::WithFuncs;
 use std::collections::HashMap;
 use std::path::PathBuf;
+use tparam::*;
 
-pub type TFunc = dyn Fn(&[TData]) -> anyhow::Result<TData>;
-pub type TFn = fn(&[TData]) -> anyhow::Result<TData>;
+pub type TFunc = dyn for<'a> Fn(&[TBoco<'a>]) -> anyhow::Result<TBoco<'a>>;
+pub type TFn = for<'a> fn(&[TBoco<'a>]) -> anyhow::Result<TBoco<'a>>;
 
 pub trait FuncManager {
     fn get_func(&self, k: &str) -> Option<&TFunc>;

@@ -1,5 +1,6 @@
-use crate::err::*;
 use crate::*;
+use err::*;
+use tparam::*;
 
 pub fn fold<T: Clone, F: Fn(T, &T) -> anyhow::Result<T>>(l: &[T], f: F) -> anyhow::Result<T> {
     if l.len() == 0 {
@@ -34,47 +35,47 @@ pub fn num_match(a: &TData, b: &TData) -> Option<NumMatch> {
     })
 }
 
-pub fn add(l: &[TData]) -> anyhow::Result<TData> {
+pub fn add<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     fold(l, |a, b| match num_match(&a, b) {
-        Some(U(a, b)) => Ok(TData::UInt(a + b)),
-        Some(F(a, b)) => Ok(TData::Float(a + b)),
-        Some(I(a, b)) => Ok(TData::Int(a + b)),
+        Some(U(a, b)) => Ok(TBoco::Co(TData::UInt(a + b))),
+        Some(F(a, b)) => Ok(TBoco::Co(TData::Float(a + b))),
+        Some(I(a, b)) => Ok(TBoco::Co(TData::Int(a + b))),
         _ => Err(ea_str("Cannot add non numeric values")),
     })
 }
 
-pub fn sub(l: &[TData]) -> anyhow::Result<TData> {
+pub fn sub<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     fold(l, |a, b| match num_match(&a, b) {
-        Some(U(a, b)) => Ok(TData::UInt(a - b)),
-        Some(F(a, b)) => Ok(TData::Float(a - b)),
-        Some(I(a, b)) => Ok(TData::Int(a - b)),
+        Some(U(a, b)) => Ok(TBoco::Co(TData::UInt(a - b))),
+        Some(F(a, b)) => Ok(TBoco::Co(TData::Float(a - b))),
+        Some(I(a, b)) => Ok(TBoco::Co(TData::Int(a - b))),
         _ => Err(ea_str("Cannot add non numeric values")),
     })
 }
 
-pub fn mul(l: &[TData]) -> anyhow::Result<TData> {
+pub fn mul<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     fold(l, |a, b| match num_match(&a, b) {
-        Some(U(a, b)) => Ok(TData::UInt(a * b)),
-        Some(F(a, b)) => Ok(TData::Float(a * b)),
-        Some(I(a, b)) => Ok(TData::Int(a * b)),
+        Some(U(a, b)) => Ok(TBoco::Co(TData::UInt(a * b))),
+        Some(F(a, b)) => Ok(TBoco::Co(TData::Float(a * b))),
+        Some(I(a, b)) => Ok(TBoco::Co(TData::Int(a * b))),
         _ => Err(ea_str("Cannot add non numeric values")),
     })
 }
 
-pub fn div(l: &[TData]) -> anyhow::Result<TData> {
+pub fn div<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     fold(l, |a, b| match num_match(&a, b) {
-        Some(U(a, b)) => Ok(TData::UInt(a * b)),
-        Some(F(a, b)) => Ok(TData::Float(a * b)),
-        Some(I(a, b)) => Ok(TData::Int(a * b)),
+        Some(U(a, b)) => Ok(TBoco::Co(TData::UInt(a / b))),
+        Some(F(a, b)) => Ok(TBoco::Co(TData::Float(a / b))),
+        Some(I(a, b)) => Ok(TBoco::Co(TData::Int(a / b))),
         _ => Err(ea_str("Cannot add non numeric values")),
     })
 }
 
-pub fn modulo(l: &[TData]) -> anyhow::Result<TData> {
+pub fn modulo<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     fold(l, |a, b| match num_match(&a, b) {
-        Some(U(a, b)) => Ok(TData::UInt(a % b)),
-        Some(F(a, b)) => Ok(TData::Float(a % b)),
-        Some(I(a, b)) => Ok(TData::Int(a % b)),
+        Some(U(a, b)) => Ok(TBoco::Co(TData::UInt(a % b))),
+        Some(F(a, b)) => Ok(TBoco::Co(TData::Float(a % b))),
+        Some(I(a, b)) => Ok(TBoco::Co(TData::Int(a % b))),
         _ => Err(ea_str("Cannot add non numeric values")),
     })
 }
