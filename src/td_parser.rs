@@ -3,15 +3,19 @@ use crate::TData;
 use gobble::*;
 use std::collections::HashMap;
 
+parser! {(SData->TData)
+    wn__(Data)
+}
+
 parser! {(Data->TData)
-    wn__(or!(
+    or!(
         "null".map(|_|TData::Null),
         common::Bool.map(|b|TData::Bool(b)),
         common::Float.map(|f|TData::Float(f)),
         common::UInt.map(|n|TData::UInt(n)),
         common::Int.map(|i|TData::Int(i)),
         TString.map(|s|TData::String(s)),
-        "[".ig_then(sep_until_ig(Data, ",", "]"))
+        "[".ig_then(sep_until_ig(SData, ",", "]"))
             .map(|a| TData::List(a)),
         "{".ig_then(sep_until_ig(wn__(MapItem), ",", "}")).map(|a| {
             let mut m = HashMap::new();
@@ -21,7 +25,7 @@ parser! {(Data->TData)
             TData::Map(m)
         })
 
-    ))
+    )
 }
 
 parser! { (HexUnicode ->char)
@@ -64,5 +68,5 @@ parser! {
 
 parser! {
     (MapItem->(String,TData))
-    (wn__(TString),":", Data).map(|(a, _, b)| (a, b))
+    (wn__(TString),":", SData).map(|(a, _, b)| (a, b))
 }

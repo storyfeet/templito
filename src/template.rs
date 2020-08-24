@@ -6,6 +6,9 @@ use parser::TFile;
 use pipeline::*;
 use scope::Scope;
 use std::collections::HashMap;
+use std::io::Read;
+use std::path::Path;
+use std::str::FromStr;
 use temp_man::TempManager;
 use tparam::TParam;
 
@@ -221,6 +224,13 @@ impl TreeTemplate {
             res.push_str(&item.run(&mut scope, tm, fm)?);
         }
         Ok((res, scope.top()))
+    }
+
+    pub fn load<P: AsRef<Path>>(p: P) -> anyhow::Result<Self> {
+        let mut f = std::fs::File::open(p)?;
+        let mut s = String::new();
+        f.read_to_string(&mut s)?;
+        Ok(TreeTemplate::from_str(&s)?)
     }
 }
 

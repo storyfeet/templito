@@ -3,11 +3,13 @@ use crate::template::*;
 use common::Ident;
 use gobble::*;
 
+char_bool!(WN, " \t\n\r");
+
 pub fn wn_<P: Parser>(p: P) -> impl Parser<Out = P::Out> {
-    last(" \t\n\r".star(), p)
+    last(WN.star(), p)
 }
 pub fn wn__<P: Parser>(p: P) -> impl Parser<Out = P::Out> {
-    middle(" \t\n\r".star(), p, " \t\n\r".star())
+    middle(WN.star(), p, WN.star())
 }
 
 parser! { (TFile->FlatTemplate)
@@ -17,11 +19,6 @@ parser! { (TFile->FlatTemplate)
 parser! {(Var->VarPart)
     or!(Ident.map(|s|VarPart::Id(s)),
         common::UInt.map(|u|VarPart::Num(u)))
-}
-
-parser! {(SingleQuotes->String)
-    ('\'',chars_until(or!(not("\'\\").one(),"\\'".asv('\''),"\\\\".asv('\\')),'\''))
-        .map(|(_,(v,_))|v)
 }
 
 parser! {(Pipe->Pipeline)
@@ -44,7 +41,7 @@ parser! {(StringItem->String)
 }
 
 parser! {(Assign->(String,Pipeline))
-    (wn_(Ident),wn_("="),wn_(Pipe),(ws_(or_ig!(';','\n',peek('}'))),"\n \t".star())).map(|(a,_,v,_)|(a,v))
+    (wn_(Ident),wn_("="),wn_(Pipe),ws_((or_ig!(";,\n".one(),peek('}')),WN.star()))).map(|(a,_,v,_)|(a,v))
 }
 
 parser! {(Item->FlatItem)

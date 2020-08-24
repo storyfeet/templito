@@ -4,6 +4,7 @@ use crate::*;
 use pipeline::*;
 use serde_json::Value;
 use std::str::FromStr;
+use temp_man::*;
 use template::*;
 
 #[test]
@@ -19,6 +20,14 @@ fn can_parse_simple_template() {
             )])]
         }
     );
+}
+
+#[test]
+fn let_assign_vars() {
+    let p = TreeTemplate::from_str("{{let x = 3\ny=\"poo\"}}{{$x}} + {{$y}}").unwrap();
+    let fm = func_man::default_func_man();
+    let res = p.run(&[], &mut NoTemplates, &fm).unwrap();
+    assert_eq!(res, "3 + poo");
 }
 
 #[test]

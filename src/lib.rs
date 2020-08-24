@@ -60,6 +60,33 @@ impl fmt::Display for TData {
     }
 }
 
+impl From<String> for TData {
+    fn from(s: String) -> TData {
+        TData::String(s)
+    }
+}
+
+impl From<usize> for TData {
+    fn from(u: usize) -> TData {
+        TData::UInt(u)
+    }
+}
+impl From<&str> for TData {
+    fn from(s: &str) -> TData {
+        TData::String(s.to_string())
+    }
+}
+impl From<&[&str]> for TData {
+    fn from(v: &[&str]) -> TData {
+        TData::List(v.into_iter().map(|t| TData::from(*t)).collect())
+    }
+}
+impl From<&[String]> for TData {
+    fn from(v: &[String]) -> TData {
+        TData::List(v.into_iter().map(|t| TData::String(t.clone())).collect())
+    }
+}
+
 impl TData {
     ///How the type will be created from the template
     pub fn from_str(s: &str) -> anyhow::Result<Self> {
