@@ -14,7 +14,7 @@ pub fn fold<T: Clone, F: Fn(T, &T) -> anyhow::Result<T>>(l: &[T], f: F) -> anyho
 
 pub enum NumMatch {
     U(usize, usize),
-    I(i64, i64),
+    I(isize, isize),
     F(f64, f64),
 }
 use NumMatch::*;
@@ -22,9 +22,9 @@ use NumMatch::*;
 pub fn num_match(a: &TData, b: &TData) -> Option<NumMatch> {
     Some(match (a, b) {
         (TData::UInt(a), TData::UInt(b)) => U(*a, *b),
-        (TData::UInt(a), TData::Int(b)) => I(*a as i64, *b),
+        (TData::UInt(a), TData::Int(b)) => I(*a as isize, *b),
         (TData::UInt(a), TData::Float(b)) => F(*a as f64, *b),
-        (TData::Int(a), TData::UInt(b)) => I(*a, *b as i64),
+        (TData::Int(a), TData::UInt(b)) => I(*a, *b as isize),
         (TData::Int(a), TData::Int(b)) => I(*a, *b),
         (TData::Int(a), TData::Float(b)) => F(*a as f64, *b),
         (TData::Float(a), TData::UInt(b)) => F(*a, *b as f64),

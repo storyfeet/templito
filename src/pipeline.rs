@@ -7,7 +7,7 @@ use tparam::TParam;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Pipeline {
-    Lit(String),
+    Lit(TData),
     Var(Vec<VarPart>),
     Command(String, Vec<Pipeline>),
 }
@@ -98,7 +98,7 @@ impl Pipeline {
         fm: &FM,
     ) -> anyhow::Result<TData> {
         match self {
-            Pipeline::Lit(v) => Ok(TData::from_str(&v)?),
+            Pipeline::Lit(v) => Ok(v.clone()),
             Pipeline::Var(v) => scope
                 .get(v)
                 .map(|v| v.clone())

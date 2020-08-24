@@ -1,6 +1,6 @@
 use crate::pipeline::Pipeline;
 use crate::template::*;
-use common::{Ident, Quoted};
+use common::Ident;
 use gobble::*;
 
 pub fn wn_<P: Parser>(p: P) -> impl Parser<Out = P::Out> {
@@ -30,10 +30,8 @@ parser! {(Pipe->Pipeline)
         ('$',sep_star(Var,'.')).map(|(_,p)|Pipeline::Var(p)),
         ('@').map(|_| Pipeline::Var(vec![VarPart::Id("@".to_string())])),
         ('>',(Alpha,NumDigit,"._").plus(),star(wn__(Pipe))).map(|(_,c,v)|Pipeline::Command(c,v)),
+        crate::td_parser::Data.map(|d| Pipeline::Lit(d)),
         (Ident,star(wn__(Pipe))).map(|(c,v)|Pipeline::Command(c,v)),
-        string(Quoted).map(|v|Pipeline::Lit(v)),
-        SingleQuotes.map(|v|Pipeline::Lit(v)),
-        not(" \t}()").plus().map(|v|Pipeline::Lit(v)),
     )
 }
 

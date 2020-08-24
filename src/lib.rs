@@ -4,12 +4,14 @@ pub mod funcs;
 mod parser;
 mod pipeline;
 mod scope;
+mod td_parser;
 pub mod temp_man;
 pub mod template;
 mod tests;
 pub mod tparam;
 use template::{TreeTemplate, VarPart};
 pub mod prelude;
+use gobble::traits::*;
 use std::cmp::Ordering;
 use std::collections::HashMap;
 
@@ -19,7 +21,7 @@ use std::fmt;
 pub enum TData {
     Bool(bool),
     String(String),
-    Int(i64),
+    Int(isize),
     UInt(usize),
     Float(f64),
     List(Vec<TData>),
@@ -60,9 +62,8 @@ impl fmt::Display for TData {
 
 impl TData {
     ///How the type will be created from the template
-    fn from_str(s: &str) -> anyhow::Result<Self> {
-        let v = s.parse::<serde_json::Value>()?;
-        Ok(Self::from_json(v))
+    pub fn from_str(s: &str) -> anyhow::Result<Self> {
+        td_parser::Data.parse_s(s).map_err(|e| e.strung().into())
     }
 
     fn as_str(&self) -> Option<&str> {
@@ -80,7 +81,7 @@ impl TData {
                 if n.is_f64() {
                     Self::Float(n.as_f64().unwrap())
                 } else {
-                    Self::Int(n.as_i64().unwrap())
+                    Self::Int(n.as_i64().unwrap() as isize)
                 }
             }
             SV::Null => Self::Null,
@@ -98,7 +99,7 @@ impl TData {
         use toml::Value as TV;
         match v {
             TV::String(s) => Self::String(s),
-            TV::Integer(n) => Self::Int(n),
+            TV::Integer(n) => Self::Int(n as isize),
             TV::Float(f) => Self::Float(f),
             TV::Boolean(b) => Self::Bool(b),
             TV::Array(a) => Self::List(a.into_iter().map(|v| TData::from_toml(v)).collect()),

@@ -7,7 +7,7 @@ use std::str::FromStr;
 use template::*;
 
 #[test]
-fn test_simple_parser() {
+fn can_parse_simple_template() {
     let p = FlatTemplate::from_str("{{let x = 3}}").unwrap();
 
     assert_eq!(
@@ -15,37 +15,20 @@ fn test_simple_parser() {
         FlatTemplate {
             v: vec![FlatItem::Let(vec![(
                 "x".to_string(),
-                Pipeline::Lit("3".to_string())
+                Pipeline::Lit(TData::UInt(3))
             )])]
         }
     );
 }
 
 #[test]
-fn test_fancy() {
-    let tt = TreeTemplate::from_str(
-        r#"hello{{ dothing $h 5}}More words{{if $0}}YES{{else}}NO{{/if}}LastBit"#,
-    )
-    .unwrap();
-    assert_eq!(tt.v[0], TreeItem::String("hello".to_string()));
-    assert_eq!(tt.v[2], TreeItem::String("More words".to_string()));
-    assert_eq!(tt.v[4], TreeItem::String("LastBit".to_string()));
-    match &tt.v[3] {
-        TreeItem::If { cond, .. } => {
-            assert_eq!(cond, &Pipeline::Var(vec![VarPart::Num(0)]));
-        }
-        e => panic!("Expected 'if' got {:?}", e),
-    };
-}
-
-#[test]
-fn test_run() {
-    let tt = TreeTemplate::from_str(r#"Hello{{cat $0 "go" "dtop"}} "#).unwrap();
+fn cat_can_print_all_members() {
+    let tt = TreeTemplate::from_str(r#"Hello{{cat $0 "go" 3}} "#).unwrap();
     let data = serde_json::Value::String("GOBBLE".to_string());
     let fm = func_man::default_func_man();
     let mut tm = temp_man::BasicTemps::new();
     let res = tt.run(&[&data], &mut tm, &fm).unwrap();
-    assert_eq!(res, "HelloGOBBLEgodtop ");
+    assert_eq!(res, "HelloGOBBLEgo3 ");
 }
 
 #[test]
@@ -82,10 +65,10 @@ fn test_for_array() {
 }
 
 #[test]
-fn test_first_sel() {
+fn first_gets_first_valid() {
     let tt = TreeTemplate::from_str(
-        r#"{{select $0 "MOO", "NOO"}} is\    
-        \ {{select $1 'null' $10 $2 $3}} {{first $10 'null' $3}} "#,
+        r#"{{select $0 "MOO" "NOO"}} is\    
+        \ {{select $1 null $10 $2 $3}} {{first $10 null $3}} "#,
     )
     .unwrap();
 
@@ -98,7 +81,7 @@ fn test_first_sel() {
 }
 
 #[test]
-fn test_json_math() {
+fn json_math() {
     let tt =
         TreeTemplate::from_str(r#"3*({{$0}}+{{$1}}+{{$2}})={{mul 3 (add $0 $1 $2)}}"#).unwrap();
     let mut tm = temp_man::BasicTemps::new();
@@ -108,7 +91,7 @@ fn test_json_math() {
 }
 
 #[test]
-fn test_var_part() {
+fn can_access_arrays() {
     let tt = TreeTemplate::from_str(r#"{{$0.0}}+{{$0.1}}+{{$0.2}}"#).unwrap();
     let mut tm = temp_man::BasicTemps::new();
     let fm = func_man::default_func_man();
@@ -128,7 +111,7 @@ fn test_var_part() {
 }
 
 #[test]
-fn test_at_can_be_used_in_params() {
+fn at_can_be_used_in_params() {
     let tt = TreeTemplate::from_str(r#"{{@cat "Food" @ "noobs"}} {{$0}} {{/cat}}!!"#).unwrap();
     let mut tm = temp_man::BasicTemps::new();
     let fm = func_man::default_func_man();
@@ -138,9 +121,10 @@ fn test_at_can_be_used_in_params() {
 }
 
 #[test]
-fn test_can_call_defined_func() {
-    let tt = TreeTemplate::from_str(r#"{{define good}}{{$0}} > {{$1}}{{/define}}{{run good 3 4}}"#)
-        .unwrap();
+fn can_call_defined_templates() {
+    let tt =
+        TreeTemplate::from_str(r#"{{define good}}{{$0}} > {{$1}}{{/define}}{{run $good 3 4}}"#)
+            .unwrap();
     let mut tm = temp_man::BasicTemps::new();
     let fm = func_man::default_func_man();
     let res = tt.run(&[&"is for"], &mut tm, &fm).unwrap();
