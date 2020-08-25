@@ -10,7 +10,7 @@ use std::io::Read;
 use std::path::Path;
 use std::str::FromStr;
 use temp_man::TempManager;
-use tparam::TParam;
+use tparam::*;
 
 pub type Block = Vec<TreeItem>;
 
@@ -110,14 +110,14 @@ impl TreeItem {
             TreeItem::String(s) => Ok(s.clone()),
             TreeItem::Let(vec) => {
                 for (k, v) in vec {
-                    let vsolid = v.run(&scope, tm, fm)?;
+                    let vsolid = v.run(&scope, tm, fm)?.concrete();
                     scope.set(k.to_string(), vsolid);
                 }
                 Ok(String::new())
             }
             TreeItem::Export(vec) => {
                 for (k, v) in vec {
-                    let vsolid = v.run(&scope, tm, fm)?;
+                    let vsolid = v.run(&scope, tm, fm)?.concrete();
                     scope.set_root(k.to_string(), vsolid);
                 }
                 Ok(String::new())
@@ -127,7 +127,7 @@ impl TreeItem {
                 Ok(pres.to_string())
             }
             TreeItem::If { cond, yes, no } => {
-                let pres = cond.run(&scope, tm, fm).unwrap_or(TData::Null);
+                let pres = cond.run(&scope, tm, fm).unwrap_or(TBoco::Co(TData::Null));
                 match pres.as_bool() {
                     Some(true) => run_block(yes, scope, tm, fm),
                     _ => {
@@ -140,12 +140,12 @@ impl TreeItem {
                 }
             }
             TreeItem::For { k, v, p, b } => {
-                let looper = p.run(scope, tm, fm)?;
+                let looper = p.run(scope, tm, fm)?.concrete();
                 let mut res = String::new();
                 match looper {
                     TData::Map(m) => {
                         for (mapk, mapv) in m {
-                            scope.set(k, TData::String(mapk));
+                            scope.set(k, TData::String(mapk.to_string()));
                             scope.set(v, mapv.clone());
                             res.push_str(&run_block(&b, scope, tm, fm)?);
                         }
@@ -171,7 +171,7 @@ impl TreeItem {
                 if params.len() == 0 {
                     return Ok(pipeline::run_values::<TM, FM>(
                         command,
-                        &vec![TData::String(ch)],
+                        &vec![TBoco::Co(TData::String(ch))],
                         tm,
                         fm,
                     )?

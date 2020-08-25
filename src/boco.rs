@@ -17,7 +17,22 @@ impl<'a, T: fmt::Debug> fmt::Debug for Boco<'a, T> {
         write!(f, "{:?}", self.deref())
     }
 }
+impl<'a, T: fmt::Display> fmt::Display for Boco<'a, T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.deref())
+    }
+}
+impl<'a, T: PartialEq> PartialEq for Boco<'a, T> {
+    fn eq(&self, b: &Self) -> bool {
+        self.deref() == b.deref()
+    }
+}
 
+impl<'a, T: PartialOrd> PartialOrd for Boco<'a, T> {
+    fn partial_cmp(&self, b: &Self) -> Option<std::cmp::Ordering> {
+        self.deref().partial_cmp(b.deref())
+    }
+}
 impl<'a, T> std::ops::Deref for Boco<'a, T> {
     type Target = T;
     fn deref(&self) -> &T {

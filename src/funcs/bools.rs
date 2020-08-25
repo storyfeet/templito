@@ -1,80 +1,83 @@
 use crate::*;
+use boco::*;
 use err::*;
+//use std::ops::Deref;
+use tparam::*;
 
-pub fn eq(l: &[TData]) -> anyhow::Result<TData> {
+pub fn eq<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     if l.len() == 0 {
         return Err(ea_str("Not enough args for eq"));
     }
     for a in &l[1..] {
         if *a != l[0] {
-            return Ok(TData::Bool(false));
+            return b_ok(TData::Bool(false));
         }
     }
-    Ok(TData::Bool(true))
+    b_ok(TData::Bool(true))
 }
 
-pub fn gt(l: &[TData]) -> anyhow::Result<TData> {
+pub fn gt<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     if l.len() == 0 {
         return Err(ea_str("Not enough args for eq"));
     }
     for a in &l[1..] {
         if l[0] > *a {
         } else {
-            return Ok(TData::Bool(false));
+            return b_ok(TData::Bool(false));
         }
     }
-    Ok(TData::Bool(true))
+    b_ok(TData::Bool(true))
 }
 
-pub fn lt(l: &[TData]) -> anyhow::Result<TData> {
+pub fn lt<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     if l.len() == 0 {
         return Err(ea_str("Not enough args for lt"));
     }
     for a in &l[1..] {
         if l[0] < *a {
         } else {
-            return Ok(TData::Bool(false));
+            return b_ok(TData::Bool(false));
         }
     }
-    Ok(TData::Bool(true))
+    b_ok(TData::Bool(true))
 }
 
-pub fn gte(l: &[TData]) -> anyhow::Result<TData> {
+pub fn gte<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     if l.len() == 0 {
         return Err(ea_str("Not enough args for gte"));
     }
     for a in &l[1..] {
         if !(l[0] >= *a) {
-            return Ok(TData::Bool(false));
+            return b_ok(TData::Bool(false));
         }
     }
-    Ok(TData::Bool(true))
+    b_ok(TData::Bool(true))
 }
-pub fn lte(l: &[TData]) -> anyhow::Result<TData> {
+pub fn lte<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     if l.len() == 0 {
         return Err(ea_str("Not enough args for lte"));
     }
     for a in &l[1..] {
         if !(l[0] <= *a) {
-            return Ok(TData::Bool(false));
+            return b_ok(TData::Bool(false));
         }
     }
-    Ok(TData::Bool(true))
+    b_ok(TData::Bool(true))
 }
 
-pub fn and(l: &[TData]) -> anyhow::Result<TData> {
+pub fn and<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     for a in l {
         if let None | Some(false) = a.as_bool() {
-            return Ok(TData::Bool(false));
+            return b_ok(TData::Bool(false));
         }
     }
-    Ok(TData::Bool(true))
+    b_ok(TData::Bool(true))
 }
-pub fn or(l: &[TData]) -> anyhow::Result<TData> {
+pub fn or<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     for a in l {
         if let Some(true) = a.as_bool() {
-            return Ok(TData::Bool(true));
+            return b_ok(TData::Bool(true));
         }
     }
-    Ok(TData::Bool(false))
+    b_ok(TData::Bool(false))
 }

@@ -21,7 +21,7 @@ impl<'a> Scope<'a> {
         self.maps.into_iter().next().unwrap_or(HashMap::new())
     }
 
-    pub fn get<'b>(&'b self, v: &[VarPart]) -> Bop<'b> {
+    pub fn get<'b>(&'b self, v: &[VarPart]) -> TBop<'b> {
         if v.len() == 0 {
             return None;
         }

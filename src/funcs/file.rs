@@ -1,12 +1,14 @@
-use crate::err::*;
-use crate::TData;
+use crate::*;
+use boco::*;
+use err::*;
 use std::path::{Path, PathBuf};
+use tparam::*;
 
-fn path_dat(p: &Path) -> TData {
+fn path_dat<'a>(p: &Path) -> TData {
     TData::String(p.display().to_string())
 }
 
-fn join_args(args: &[TData]) -> PathBuf {
+fn join_args<'a>(args: &[TBoco<'a>]) -> PathBuf {
     let mut path = PathBuf::new();
     for v in args {
         path.push(v.to_string());
@@ -14,19 +16,19 @@ fn join_args(args: &[TData]) -> PathBuf {
     path
 }
 
-pub fn parent(args: &[TData]) -> anyhow::Result<TData> {
+pub fn parent<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     if let Some(p) = join_args(args).parent() {
-        Ok(TData::String(p.display().to_string()))
+        b_ok(TData::String(p.display().to_string()))
     } else {
-        Ok(TData::String("".to_string()))
+        b_ok(TData::String("".to_string()))
     }
 }
 
-pub fn join(args: &[TData]) -> anyhow::Result<TData> {
-    Ok(path_dat(&join_args(args)))
+pub fn join<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+    b_ok(path_dat(&join_args(args)))
 }
 
-pub fn bread_crumbs(args: &[TData]) -> anyhow::Result<TData> {
+pub fn bread_crumbs<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     let mut path = join_args(args);
     let mut res = Vec::new();
     res.push(path_dat(&path));
@@ -34,18 +36,18 @@ pub fn bread_crumbs(args: &[TData]) -> anyhow::Result<TData> {
         res.insert(0, path_dat(&par));
         path = PathBuf::from(par);
     }
-    Ok(TData::List(res))
+    b_ok(TData::List(res))
 }
 
-pub fn base_name(args: &[TData]) -> anyhow::Result<TData> {
+pub fn base_name<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     join_args(args)
         .file_name()
         .and_then(|v| v.to_str())
-        .map(|v| TData::String(v.to_string()))
+        .map(|v| TBoco::Co(TData::String(v.to_string())))
         .ok_or(ea_str("Could not get file base_name"))
 }
-pub fn base_name_sure(args: &[TData]) -> anyhow::Result<TData> {
-    Ok(TData::String(
+pub fn base_name_sure<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+    b_ok(TData::String(
         join_args(args)
             .file_name()
             .and_then(|v| v.to_str())
@@ -54,11 +56,11 @@ pub fn base_name_sure(args: &[TData]) -> anyhow::Result<TData> {
     ))
 }
 
-pub fn with_ext(args: &[TData]) -> anyhow::Result<TData> {
+pub fn with_ext<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     if args.len() < 2 {
         return Err(ea_str("'with_ext' requires a filenae then an extension"));
     }
     let p = PathBuf::from(args[0].to_string());
     let pe = p.with_extension(args[1].to_string());
-    Ok(path_dat(&pe))
+    b_ok(path_dat(&pe))
 }

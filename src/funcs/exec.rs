@@ -1,9 +1,11 @@
 use crate::*;
+use boco::*;
 use err::*;
 use std::io::Write;
 use std::process::{Command, Stdio};
+use tparam::*;
 
-pub fn exec(args: &[TData]) -> Result<TData, anyhow::Error> {
+pub fn exec<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     if args.len() == 0 {
         Err(ea_str("Must have something to exec"))?;
     }
@@ -11,10 +13,10 @@ pub fn exec(args: &[TData]) -> Result<TData, anyhow::Error> {
         .args(args[1..].into_iter().map(|v| v.to_string()))
         .output()?;
 
-    Ok(TData::String(String::from_utf8(c.stdout)?))
+    b_ok(TData::String(String::from_utf8(c.stdout)?))
 }
 
-pub fn exec_stdin(args: &[TData]) -> Result<TData, anyhow::Error> {
+pub fn exec_stdin<'a>(args: &[TBoco<'a>]) -> Result<TBoco<'a>, anyhow::Error> {
     if args.len() <= 1 {
         Err(ea_str("Must have something to exec and an arg for stdin"))?;
     }
@@ -32,5 +34,5 @@ pub fn exec_stdin(args: &[TData]) -> Result<TData, anyhow::Error> {
     }
     let op = c.wait_with_output()?;
 
-    Ok(TData::String(String::from_utf8(op.stdout)?))
+    b_ok(TData::String(String::from_utf8(op.stdout)?))
 }

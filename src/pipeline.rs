@@ -1,9 +1,11 @@
 use crate::*;
+use boco::*;
 use err::Error;
 use func_man::FuncManager;
 use scope::Scope;
+use std::ops::Deref;
 use temp_man::TempManager;
-use tparam::TParam;
+use tparam::*;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Pipeline {
@@ -12,18 +14,18 @@ pub enum Pipeline {
     Command(String, Vec<Pipeline>),
 }
 
-pub fn run_values<TM: TempManager, FM: FuncManager>(
+pub fn run_values<'a, TM: TempManager, FM: FuncManager>(
     cname: &str,
-    args: &[TData],
+    args: &[TBoco<'a>],
     tm: &mut TM,
     fm: &FM,
-) -> anyhow::Result<TData> {
+) -> anyhow::Result<TBoco<'a>> {
     if let Ok(in_tp) = tm.get_t(cname).map(|t| t.clone()) {
         let mut v2: Vec<&dyn TParam> = Vec::new();
         for a in args {
             v2.push(a);
         }
-        Ok(TData::String(in_tp.run(&v2, tm, fm)?))
+        b_ok(TData::String(in_tp.run(&v2, tm, fm)?))
     } else if let Some(in_f) = fm.get_func(&cname) {
         Ok(in_f(&args)?)
     } else {
@@ -31,13 +33,13 @@ pub fn run_values<TM: TempManager, FM: FuncManager>(
     }
 }
 
-pub fn run_command<TM: TempManager, FM: FuncManager>(
+pub fn run_command<'a, TM: TempManager, FM: FuncManager>(
     cname: &str,
-    args: &[Pipeline],
-    scope: &Scope,
+    args: &'a [Pipeline],
+    scope: &'a Scope,
     tm: &mut TM,
     fm: &FM,
-) -> anyhow::Result<TData> {
+) -> anyhow::Result<TBoco<'a>> {
     if cname == "run" {
         println!("Running run");
         let mut tds = Vec::new();
@@ -49,14 +51,16 @@ pub fn run_command<TM: TempManager, FM: FuncManager>(
         for p in &tds[1..] {
             v.push(p);
         }
-        if let Some(TData::Template(t)) = tds.get(0) {
-            return Ok(TData::String(t.run(&v, tm, fm)?));
+        if let Some(tp) = tds.get(0) {
+            if let TData::Template(t) = tp.deref() {
+                return b_ok(TData::String(t.run(&v, tm, fm)?));
+            }
         }
     }
     if cname == "first" {
         for p in args {
             if let Ok(res) = p.run(scope, tm, fm) {
-                if res != TData::Null {
+                if res.deref() != &TData::Null {
                     return Ok(res);
                 }
             }
@@ -73,7 +77,7 @@ pub fn run_command<TM: TempManager, FM: FuncManager>(
         } else if let Some(b) = bval.as_bool() {
             2 - (b as usize)
         } else {
-            return Err(Error::String(format!("As Bool failed on {}", bval)).into());
+            return Err(Error::String(format!("As Bool failed on {}", bval.deref())).into());
         };
 
         if bval > args.len() {
@@ -91,17 +95,16 @@ pub fn run_command<TM: TempManager, FM: FuncManager>(
 }
 
 impl Pipeline {
-    pub fn run<TM: TempManager, FM: FuncManager>(
-        &self,
-        scope: &Scope,
+    pub fn run<'a, TM: TempManager, FM: FuncManager>(
+        &'a self,
+        scope: &'a Scope,
         tm: &mut TM,
         fm: &FM,
-    ) -> anyhow::Result<TData> {
+    ) -> anyhow::Result<TBoco<'a>> {
         match self {
-            Pipeline::Lit(v) => Ok(v.clone()),
+            Pipeline::Lit(v) => Ok(TBoco::Bo(v)),
             Pipeline::Var(v) => scope
                 .get(v)
-                .map(|v| v.clone())
                 .ok_or(Error::String(format!("No Var by the name {:?}", v)).into()),
             Pipeline::Command(c, pars) => run_command(c, pars, scope, tm, fm),
         }

@@ -1,5 +1,6 @@
 use crate::*;
 use std::fmt::Debug;
+use std::ops::*;
 
 use boco::*;
 
@@ -94,5 +95,11 @@ impl TParam for f64 {
 impl TParam for bool {
     fn get_v<'a>(&'a self, _s: &[VarPart]) -> TBop<'a> {
         boco_c(TData::Bool(*self))
+    }
+}
+
+impl<'a> TParam for TBoco<'a> {
+    fn get_v<'b>(&'b self, s: &[VarPart]) -> TBop<'b> {
+        self.deref().get_v(s)
     }
 }
