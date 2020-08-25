@@ -8,7 +8,8 @@ mod bools;
 mod exec;
 mod file;
 mod folder;
-mod math;
+mod lists;
+pub mod math;
 mod strings;
 mod table;
 
@@ -19,7 +20,17 @@ pub trait WithFuncs: Sized {
     }
 
     fn with_defaults(self) -> Self {
-        self.with_bools().with_strings().with_math().with_files()
+        self.with_bools()
+            .with_strings()
+            .with_math()
+            .with_files()
+            .with_lists()
+    }
+
+    fn with_lists(self) -> Self {
+        self.with_fn("list", lists::list)
+            .with_fn("sort", lists::sort)
+            .with_fn("sort_on", lists::sort_on)
     }
 
     fn with_strings(self) -> Self {

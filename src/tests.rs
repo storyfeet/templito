@@ -139,3 +139,29 @@ fn can_call_defined_templates() {
     let res = tt.run(&[&"is for"], &mut tm, &fm).unwrap();
     assert_eq!(res, "3 > 4");
 }
+
+#[test]
+fn sorting() {
+    let fm = func_man::default_func_man();
+    let tt = TreeTemplate::from_str(r#"{{let a = (sort [ 10 , 4, 11, 15])}}{{$a}}"#).unwrap();
+    let res = tt.run(&[], &mut NoTemplates, &fm).unwrap();
+    assert_eq!(res, "[4,10,11,15]");
+}
+
+#[test]
+fn sort_on() {
+    let fm = func_man::default_func_man();
+    let tt = TreeTemplate::from_str(
+        r#"\
+        {{let a = (sort_on [
+            {"name":"dave","age":5},
+            {"name":"pete","age":10},
+            {"name":"matt","age":16},
+            {"name":"dave","age":100},
+            {"name":"matt","age":12}
+        ] "name" "age")}}{{for k v in $a}}{{$v.name}}={{$v.age}},{{/for}}"#,
+    )
+    .unwrap();
+    let res = tt.run(&[], &mut NoTemplates, &fm).unwrap();
+    assert_eq!(res, "dave=5,dave=100,matt=12,matt=16,pete=10,");
+}

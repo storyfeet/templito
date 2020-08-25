@@ -33,14 +33,19 @@ pub enum TData {
 
 impl PartialOrd for TData {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        use funcs::math::NumMatch::*;
         use TData::*;
-        match (self, other) {
-            (String(a), String(b)) => a.partial_cmp(b),
-            (Int(a), Int(b)) => a.partial_cmp(b),
-            (UInt(a), UInt(b)) => a.partial_cmp(b),
-            (Float(a), Float(b)) => a.partial_cmp(b),
-            _ => None,
+        match funcs::math::num_match(self, other) {
+            Some(I(a, b)) => return a.partial_cmp(&b),
+            Some(U(a, b)) => return a.partial_cmp(&b),
+            Some(F(a, b)) => return a.partial_cmp(&b),
+            None => {}
         }
+        match (self, other) {
+            (String(a), String(b)) => return a.partial_cmp(b),
+            _ => {}
+        }
+        self.mode_rank().partial_cmp(&other.mode_rank())
     }
 }
 
@@ -53,7 +58,15 @@ impl fmt::Display for TData {
             Int(i) => write!(f, "{}", i),
             UInt(u) => write!(f, "{}", u),
             Float(fv) => write!(f, "{}", fv),
-            List(v) => write!(f, "{:?}", v),
+            List(v) => {
+                let mut coma = "";
+                write!(f, "[")?;
+                for i in v {
+                    write!(f, "{}{}", coma, i)?;
+                    coma = ",";
+                }
+                write!(f, "]")
+            }
             Map(m) => write!(f, "{:?}", m),
             Null => write!(f, "NULL"),
             Template(_t) => write!(f, "TEMPLATE"),
@@ -98,6 +111,21 @@ impl TData {
         match self {
             TData::String(s) => Some(s),
             _ => None,
+        }
+    }
+
+    pub fn mode_rank(&self) -> usize {
+        use TData::*;
+        match self {
+            Null => 0,
+            Template(_) => 1,
+            Map(_) => 2,
+            List(_) => 3,
+            Bool(_) => 4,
+            Int(_) => 5,
+            UInt(_) => 6,
+            Float(_) => 7,
+            String(_) => 8,
         }
     }
 
