@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use std::io::Read;
 use std::path::Path;
 use std::str::FromStr;
-use temp_man::TempManager;
+use temp_man::{NoTemplates, TempManager};
 use tparam::*;
 
 pub type Block = Vec<TreeItem>;
@@ -224,6 +224,32 @@ impl TreeTemplate {
             res.push_str(&item.run(&mut scope, tm, fm)?);
         }
         Ok((res, scope.top()))
+    }
+
+    //It is not considered a failure if a file has no front matter
+    pub fn front_matter<FM: FuncManager>(&self, fm: &FM) -> HashMap<String, TData> {
+        let mut scope = Scope::new(&[]);
+        let mut it = (&self.v).into_iter();
+        while let Some(item) = it.next() {
+            match item {
+                TreeItem::AtExport(name, block) => {
+                    match run_block(block, &mut scope, &mut NoTemplates, fm) {
+                        Ok(val) => scope.set_root(name, TData::String(val)),
+                        Err(_) => {}
+                    }
+                }
+                TreeItem::Export(vec) => {
+                    for (k, v) in vec {
+                        match v.run(&scope, &mut NoTemplates, fm).map(|v| v.concrete()) {
+                            Ok(val) => scope.set_root(k.to_string(), val),
+                            Err(_) => {}
+                        }
+                    }
+                }
+                _ => {}
+            }
+        }
+        scope.top()
     }
 
     pub fn load<P: AsRef<Path>>(p: P) -> anyhow::Result<Self> {

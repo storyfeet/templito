@@ -9,6 +9,7 @@ mod exec;
 mod file;
 mod folder;
 mod lists;
+mod maps;
 pub mod math;
 mod strings;
 mod table;
@@ -25,12 +26,19 @@ pub trait WithFuncs: Sized {
             .with_math()
             .with_files()
             .with_lists()
+            .with_maps()
+    }
+    fn with_maps(self) -> Self {
+        self.with_fn("map", maps::map)
     }
 
     fn with_lists(self) -> Self {
         self.with_fn("list", lists::list)
             .with_fn("sort", lists::sort)
             .with_fn("sort_on", lists::sort_on)
+            .with_fn("bin_seatch", lists::bin_search)
+            .with_fn("bin_get", lists::bin_get)
+            .with_fn("get", lists::get)
     }
 
     fn with_strings(self) -> Self {
@@ -73,7 +81,7 @@ pub trait WithFuncs: Sized {
             .with_f("file", folder::file(pb.clone()))
             .with_f("is_file", folder::is_file(pb.clone()))
             .with_f("is_dir", folder::is_dir(pb.clone()))
-            .with_f("join", folder::join())
+            .with_f("scan_dir", folder::scan_dir(pb.clone()))
     }
 
     fn with_exec(self) -> Self {
