@@ -39,6 +39,7 @@ pub trait WithFuncs: Sized {
             .with_fn("bin_seatch", lists::bin_search)
             .with_fn("bin_get", lists::bin_get)
             .with_fn("get", lists::get)
+            .with_fn("filter", lists::filter)
     }
 
     fn with_strings(self) -> Self {
@@ -46,6 +47,7 @@ pub trait WithFuncs: Sized {
             .with_fn("md", strings::md)
             .with_fn("table", strings::table)
             .with_fn("split", strings::split)
+            .with_fn("str_contains", strings::contains)
     }
 
     fn with_math(self) -> Self {
@@ -58,12 +60,15 @@ pub trait WithFuncs: Sized {
 
     fn with_bools(self) -> Self {
         self.with_fn("eq", bools::eq)
+            .with_fn("neq", bools::neq)
             .with_fn("gt", bools::gt)
             .with_fn("gte", bools::gte)
             .with_fn("lt", bools::lt)
             .with_fn("lte", bools::lte)
             .with_fn("and", bools::and)
+            .with_fn("nand", bools::nand)
             .with_fn("or", bools::or)
+            .with_fn("nor", bools::nor)
     }
 
     fn with_files(self) -> Self {

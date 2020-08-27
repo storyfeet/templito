@@ -1,6 +1,5 @@
 use crate::pipeline::Pipeline;
 use crate::template::*;
-use common::Ident;
 use gobble::*;
 
 char_bool!(WN, " \t\n\r");
@@ -10,6 +9,12 @@ pub fn wn_<P: Parser>(p: P) -> impl Parser<Out = P::Out> {
 }
 pub fn wn__<P: Parser>(p: P) -> impl Parser<Out = P::Out> {
     middle(WN.star(), p, WN.star())
+}
+
+parser! { (Ident->String)
+    or! (common::Ident,
+        middle('\'',not('\'').plus(),'\'')
+    )
 }
 
 parser! { (TFile->FlatTemplate)
@@ -26,7 +31,6 @@ parser! {(Pipe->Pipeline)
         middle(wn_('('),wn__(Pipe),')'),
         ('$',sep_star(Var,'.')).map(|(_,p)|Pipeline::Var(p)),
         ('@').map(|_| Pipeline::Var(vec![VarPart::Id("@".to_string())])),
-        ('>',(Alpha,NumDigit,"._").plus(),star(wn__(Pipe))).map(|(_,c,v)|Pipeline::Command(c,v)),
         crate::td_parser::Data.map(|d| Pipeline::Lit(d)),
         (Ident,star(wn__(Pipe))).map(|(c,v)|Pipeline::Command(c,v)),
     )
@@ -36,6 +40,7 @@ parser! {(StringItem->String)
     or!(
         ("\\",("\t \n\r").plus(),maybe("\\")).map(|_|String::new()),
         ("\\",Any.one()).map(|(_,c)|c.to_string()),
+        string(("{",not("{\\").plus())),
         not("{\\").plus(),
     )
 }

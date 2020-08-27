@@ -1,5 +1,7 @@
+use super::*;
 use crate::err::ea_str;
-use crate::*;
+use crate::scope::Scope;
+use crate::temp_man::NoTemplates;
 use boco::*;
 use gobble::*;
 use parser::*;
@@ -153,5 +155,29 @@ pub fn get<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
             _=>Err(ea_str("get requires either List and Int or Map and String")),
         },
         _=>Err(ea_str("Get requires List and exactly 1 Position marker. Multiple markers may be allowed in the future"))
+    }
+}
+
+pub fn filter<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+    if args.len() < 2 {
+        return Err(ea_str("Filter requires List and PipeString"));
+    }
+    let fm = BasicFuncs::new().with_defaults();
+    let pp = Pipe.parse_s(&args[1].to_string()).map_err(|e| e.strung())?;
+    if let TData::List(ls) = args[0].deref() {
+        return b_ok(TData::List(
+            ls.iter()
+                .filter_map(|v| {
+                    let params: [&dyn TParam; 1] = [v];
+                    let scope = Scope::new(&params[..]);
+                    match pp.run(&scope, &mut NoTemplates, &fm) {
+                        Ok(b) if b.as_bool().unwrap_or(false) => Some(v.clone()),
+                        _ => None,
+                    }
+                })
+                .collect(),
+        ));
+    } else {
+        Err(ea_str("Filter requires List and PipeString"))
     }
 }

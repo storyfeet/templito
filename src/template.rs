@@ -268,7 +268,7 @@ pub fn tt_basic<I: Iterator<Item = FlatItem>>(fi: FlatItem, it: &mut I) -> Resul
         FlatItem::Let(v) => TreeItem::Let(v),
         FlatItem::AtLet(v) => TreeItem::AtLet(v, tt_name_block("let", it)?),
         FlatItem::Export(v) => TreeItem::Export(v),
-        FlatItem::AtExport(v) => TreeItem::AtExport(v, tt_name_block("let", it)?),
+        FlatItem::AtExport(v) => TreeItem::AtExport(v, tt_name_block("export", it)?),
 
         FlatItem::Define(v) => TreeItem::Define(v, tt_name_block("define", it)?),
         FlatItem::If(p) => tt_if_yes(p, it)?,

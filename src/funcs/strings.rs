@@ -1,8 +1,10 @@
 use crate::*;
+use boco::*;
 use err::*;
 use pulldown_cmark as mdown;
 use std::ops::Deref;
 use tparam::*;
+
 pub fn cat<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     let mut r_str = String::new();
     for v in l {
@@ -29,6 +31,21 @@ pub fn split<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
                     .collect(),
             ))
         })
+}
+
+pub fn contains<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+    if args.len() < 2 {
+        return Err(ea_str(
+            "'contains' requires a string and then a list of potential substrings",
+        ));
+    }
+    let s = args[0].to_string();
+    for sub in args[1..].iter().map(|v| v.to_string()) {
+        if s.contains(&sub) {
+            return b_ok(TData::Bool(true));
+        }
+    }
+    b_ok(TData::Bool(false))
 }
 
 pub fn md<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {

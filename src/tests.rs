@@ -165,3 +165,21 @@ fn sort_on() {
     let res = tt.run(&[], &mut NoTemplates, &fm).unwrap();
     assert_eq!(res, "dave=5,dave=100,matt=12,matt=16,pete=10,");
 }
+
+#[test]
+fn filter() {
+    let fm = func_man::default_func_man();
+    let tt = TreeTemplate::from_str(
+        r#"\
+        {{let a = (filter [
+            {"name":"dave","age":5},
+            {"name":"pete","age":10},
+            {"name":"matt","age":16},
+            {"name":"dave","age":100},
+            {"name":"matt","age":12}
+        ] "str_contains $0.name \"a\"")}}{{for k v in $a}}{{$v.name}}={{$v.age}},{{/for}}"#,
+    )
+    .unwrap();
+    let res = tt.run(&[], &mut NoTemplates, &fm).unwrap();
+    assert_eq!(res, "dave=5,matt=16,dave=100,matt=12,");
+}
