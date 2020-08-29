@@ -40,6 +40,8 @@ pub trait WithFuncs: Sized {
             .with_fn("bin_get", lists::bin_get)
             .with_fn("get", lists::get)
             .with_fn("filter", lists::filter)
+            .with_fn("len", lists::len)
+            .with_fn("slice", lists::slice)
     }
 
     fn with_strings(self) -> Self {
@@ -78,6 +80,8 @@ pub trait WithFuncs: Sized {
             .with_fn("base_name", file::base_name)
             .with_fn("base_name_sure", file::base_name_sure)
             .with_fn("with_ext", file::with_ext)
+            .with_fn("stem", file::stem)
+            .with_fn("full_stem", file::full_stem)
     }
 
     fn with_folder_lock<P: Into<PathBuf>>(self, pb: P) -> Self {

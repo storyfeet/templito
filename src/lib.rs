@@ -5,7 +5,7 @@ pub mod funcs;
 mod parser;
 mod pipeline;
 mod scope;
-mod td_parser;
+pub mod td_parser;
 pub mod temp_man;
 pub mod template;
 mod tests;
@@ -29,6 +29,7 @@ pub enum TData {
     Map(HashMap<String, TData>),
     Template(TreeTemplate),
     Null,
+    Date(chrono::NaiveDate),
 }
 
 impl PartialOrd for TData {
@@ -43,6 +44,7 @@ impl PartialOrd for TData {
         }
         match (self, other) {
             (String(a), String(b)) => return a.partial_cmp(b),
+            (Date(a), Date(b)) => return a.partial_cmp(b),
             _ => {}
         }
         self.mode_rank().partial_cmp(&other.mode_rank())
@@ -70,6 +72,7 @@ impl fmt::Display for TData {
             Map(m) => write!(f, "{:?}", m),
             Null => write!(f, "NULL"),
             Template(_t) => write!(f, "TEMPLATE"),
+            Date(d) => write!(f, "{}", d.format("%d/%m/%Y")),
         }
     }
 }
@@ -124,8 +127,9 @@ impl TData {
             Bool(_) => 4,
             Int(_) => 5,
             UInt(_) => 6,
-            Float(_) => 7,
-            String(_) => 8,
+            Date(_) => 7,
+            Float(_) => 8,
+            String(_) => 9,
         }
     }
 

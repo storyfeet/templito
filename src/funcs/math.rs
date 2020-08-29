@@ -46,7 +46,13 @@ pub fn add<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
 
 pub fn sub<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     fold(l, |a, b| match num_match(&a, b) {
-        Some(U(a, b)) => Ok(TBoco::Co(TData::UInt(a - b))),
+        Some(U(a, b)) => {
+            if a >= b {
+                Ok(TBoco::Co(TData::UInt(a - b)))
+            } else {
+                Ok(TBoco::Co(TData::Int(a as isize - b as isize)))
+            }
+        }
         Some(F(a, b)) => Ok(TBoco::Co(TData::Float(a - b))),
         Some(I(a, b)) => Ok(TBoco::Co(TData::Int(a - b))),
         _ => Err(ea_str("Cannot add non numeric values")),

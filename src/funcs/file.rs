@@ -64,3 +64,15 @@ pub fn with_ext<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     let pe = p.with_extension(args[1].to_string());
     b_ok(path_dat(&pe))
 }
+
+pub fn stem<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+    join_args(args)
+        .file_stem()
+        .map(|s| TBoco::Co(TData::String(s.to_string_lossy().to_string())))
+        .ok_or(ea_str("No File to stem").into())
+}
+pub fn full_stem<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+    let j = join_args(args);
+    let stem = j.file_stem().ok_or(ea_str("No file to stem"))?;
+    b_ok(TData::String(j.with_file_name(stem).display().to_string()))
+}

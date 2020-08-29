@@ -65,7 +65,7 @@ pub fn run_command<'a, TM: TempManager, FM: FuncManager>(
                 }
             }
         }
-        return Err(Error::Str("No elements passed the existence test").into());
+        return b_ok(TData::Null);
     }
     if cname == "select" {
         if args.len() < 3 {

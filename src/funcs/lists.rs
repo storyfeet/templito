@@ -14,6 +14,36 @@ pub fn list<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     b_ok(TData::List(v))
 }
 
+pub fn len<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+    let mut res = 0;
+    for a in args {
+        match a.deref() {
+            TData::List(l) => res += l.len(),
+            TData::Map(m) => res += m.len(),
+            _ => res += 1,
+        }
+    }
+    b_ok(TData::UInt(res))
+}
+
+pub fn slice<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+    let v = match args[0].deref() {
+        TData::List(l) => l,
+        _ => return Err(ea_str("Slice requires List Num Num?")),
+    };
+
+    let s = match (
+        args.get(1).and_then(|v| v.deref().as_usize()),
+        args.get(2).and_then(|v| v.deref().as_usize()),
+    ) {
+        (Some(a), Some(b)) => v.get(a..b).ok_or(ea_str("Slice our of range"))?,
+        (Some(a), _) => v.get(a..).ok_or(ea_str("Slice our of range"))?,
+        _ => return Err(ea_str("Slice requires List Num Num?")),
+    };
+    let v: Vec<TData> = s.iter().map(|d| (*d).clone()).collect();
+    b_ok(TData::List(v))
+}
+
 pub fn sort<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     let mut res = Vec::new();
     for a in args {
