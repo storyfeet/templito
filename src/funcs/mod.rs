@@ -50,6 +50,7 @@ pub trait WithFuncs: Sized {
             .with_fn("table", strings::table)
             .with_fn("split", strings::split)
             .with_fn("str_contains", strings::contains)
+            .with_fn("str_replace", strings::replace)
     }
 
     fn with_math(self) -> Self {
