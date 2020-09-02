@@ -20,16 +20,18 @@ pub fn run_values<'a, TM: TempManager, FM: FuncManager>(
     tm: &mut TM,
     fm: &FM,
 ) -> anyhow::Result<TBoco<'a>> {
-    if let Ok(in_tp) = tm.get_t(cname).map(|t| t.clone()) {
-        let mut v2: Vec<&dyn TParam> = Vec::new();
-        for a in args {
-            v2.push(a);
+    if let Some(in_f) = fm.get_func(&cname) {
+        return Ok(in_f(&args)?);
+    }
+    match tm.get_t(cname).map(|t| t.clone()) {
+        Ok(in_tp) => {
+            let mut v2: Vec<&dyn TParam> = Vec::new();
+            for a in args {
+                v2.push(a);
+            }
+            b_ok(TData::String(in_tp.run(&v2, tm, fm)?))
         }
-        b_ok(TData::String(in_tp.run(&v2, tm, fm)?))
-    } else if let Some(in_f) = fm.get_func(&cname) {
-        Ok(in_f(&args)?)
-    } else {
-        Err(Error::String(format!("No function or template b the name {}", cname)).into())
+        Err(e) => Err(e),
     }
 }
 
