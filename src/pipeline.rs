@@ -1,4 +1,5 @@
 use crate::*;
+//use anyhow::Context;
 use boco::*;
 use err::Error;
 use func_man::FuncManager;
@@ -31,7 +32,7 @@ pub fn run_values<'a, TM: TempManager, FM: FuncManager>(
             }
             b_ok(TData::String(in_tp.run(&v2, tm, fm)?))
         }
-        Err(e) => Err(e),
+        Err(e) => Err(e.context(format!("Getting template {}", cname))),
     }
 }
 
