@@ -101,7 +101,7 @@ fn json_math() {
 
 #[test]
 fn can_access_arrays() {
-    let tt = TreeTemplate::from_str(r#"{{$0.0}}+{{$0.1}}+{{$0.2}}"#).unwrap();
+    let tt = TreeTemplate::from_str(r#"{{$0.0}}+{{.1}}+{{$0.2}}"#).unwrap();
     let mut tm = temp_man::BasicTemps::new();
     let fm = func_man::default_func_man();
     let res = tt

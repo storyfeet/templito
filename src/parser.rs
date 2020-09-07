@@ -34,6 +34,11 @@ parser! {(Pipe->Pipeline)
     or!(
         middle(wn_('('),wn__(Pipe),')'),
         ('$',sep_star(Var,'.')).map(|(_,p)|Pipeline::Var(p)),
+        plus(last('.',Var)).map(|v|{
+            let mut r = vec![VarPart::Num(0)];
+            r.extend(v.into_iter());
+            Pipeline::Var(r)
+        }),
         ('@').map(|_| Pipeline::Var(vec![VarPart::Id("@".to_string())])),
         crate::td_parser::Data.map(|d| Pipeline::Lit(d)),
         (Ident,star(wn__(Pipe))).map(|(c,v)|Pipeline::Command(c,v)),
