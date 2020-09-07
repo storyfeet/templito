@@ -143,7 +143,9 @@ fn can_call_defined_templates() {
 #[test]
 fn sorting() {
     let fm = func_man::default_func_man();
-    let tt = TreeTemplate::from_str(r#"{{let a = (sort [ 10 , 4, 11, 15])}}{{$a}}"#).unwrap();
+    let tt =
+        TreeTemplate::from_str(r#"{{#some comment#}}{{let a = (sort [ 10 , 4, 11, 15])}}{{$a}}"#)
+            .unwrap();
     let res = tt.run(&[], &mut NoTemplates, &fm).unwrap();
     assert_eq!(res, "[4,10,11,15]");
 }

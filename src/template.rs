@@ -17,6 +17,7 @@ pub type Block = Vec<TreeItem>;
 #[derive(Clone, Debug, PartialEq)]
 pub enum TreeItem {
     String(String),
+    Comment,
     Pipe(Pipeline),
     Block {
         command: String,
@@ -49,6 +50,7 @@ pub struct TreeTemplate {
 #[derive(Clone, Debug, PartialEq)]
 pub enum FlatItem {
     String(String),
+    Comment,
     Pipe(Pipeline),
     If(Pipeline),
     Else,
@@ -108,6 +110,7 @@ impl TreeItem {
     ) -> anyhow::Result<String> {
         match self {
             TreeItem::String(s) => Ok(s.clone()),
+            TreeItem::Comment => Ok(String::new()),
             TreeItem::Let(vec) => {
                 for (k, v) in vec {
                     let vsolid = v.run(&scope, tm, fm)?.concrete();
@@ -260,7 +263,7 @@ impl TreeTemplate {
     }
 }
 
-///Handles all openers, but not any of the closers
+/// Handles all openers, but not any of the closers
 pub fn tt_basic<I: Iterator<Item = FlatItem>>(fi: FlatItem, it: &mut I) -> Result<TreeItem, Error> {
     Ok(match fi {
         FlatItem::String(s) => TreeItem::String(s),
@@ -286,6 +289,7 @@ pub fn tt_basic<I: Iterator<Item = FlatItem>>(fi: FlatItem, it: &mut I) -> Resul
                 block,
             }
         }
+        FlatItem::Comment => TreeItem::Comment,
         e => return Err(Error::String(format!("Unexpected {:?}", e))),
     })
 }

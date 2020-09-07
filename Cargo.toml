@@ -8,7 +8,7 @@ edition = "2018"
 
 [dependencies]
 
-gobble={path="../gobble/"}
+gobble="0.6.3"
 anyhow = "1.0.31"
 thiserror = "1.0.20"
 toml = "0.5.6"

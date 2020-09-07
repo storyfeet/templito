@@ -26,6 +26,10 @@ parser! {(Var->VarPart)
         common::UInt.map(|u|VarPart::Num(u)))
 }
 
+parser! {(Comment->())
+    ('#',not('#').istar(),'#').ig()
+}
+
 parser! {(Pipe->Pipeline)
     or!(
         middle(wn_('('),wn__(Pipe),')'),
@@ -51,6 +55,7 @@ parser! {(Assign->(String,Pipeline))
 
 parser! {(Item->FlatItem)
     middle("{{",or!(
+            wn__(Comment).map(|_|FlatItem::Comment),
             wn__(keyword("else")).map(|_|FlatItem::Else),
             wn__(keyword("/if")).map(|_|FlatItem::EndIf),
             wn__(keyword("/for")).map(|_|FlatItem::EndFor),
