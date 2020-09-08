@@ -1,6 +1,7 @@
 use crate::*;
 use std::fmt::Debug;
 use std::ops::*;
+use tdata::*;
 
 use boco::*;
 
@@ -101,5 +102,21 @@ impl TParam for bool {
 impl<'a> TParam for TBoco<'a> {
     fn get_v<'b>(&'b self, s: &[VarPart]) -> TBop<'b> {
         self.deref().get_v(s)
+    }
+}
+
+impl TParam for Vec<&str> {
+    fn get_v<'a>(&'a self, s: &[VarPart]) -> TBop<'a> {
+        match s.get(0) {
+            None => {
+                return boco_c(TData::List(
+                    self.iter().map(|s| TData::String(s.to_string())).collect(),
+                ));
+            }
+            Some(VarPart::Num(n)) => self
+                .get(*n)
+                .map(|s| TBoco::Co(TData::String(s.to_string()))),
+            _ => None,
+        }
     }
 }

@@ -5,7 +5,9 @@ use crate::temp_man::NoTemplates;
 use boco::*;
 use gobble::*;
 use parser::*;
+use std::cmp::Ordering;
 use std::ops::Deref;
+use tdata::*;
 use template::VarPart;
 use tparam::*;
 

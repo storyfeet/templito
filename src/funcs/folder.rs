@@ -3,6 +3,7 @@ use crate::*;
 use boco::*;
 use err::*;
 use func_man::*;
+use std::collections::HashMap;
 use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;

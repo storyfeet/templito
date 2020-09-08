@@ -1,5 +1,6 @@
 use crate::*;
 use err::*;
+use tdata::*;
 use tparam::*;
 
 pub fn fold<T: Clone, F: Fn(T, &T) -> anyhow::Result<T>>(l: &[T], f: F) -> anyhow::Result<T> {
