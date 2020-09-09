@@ -310,7 +310,9 @@ pub fn tt_name_block<I: Iterator<Item = FlatItem>>(name: &str, i: &mut I) -> Res
             other => res.push(tt_basic(other, i)?),
         }
     }
-    Err(Error::String(format!("{} block not ended", name)))
+    Ok(res)
+    // Should I allow open stuff at the end of a file? @md says yes
+    //Err(Error::String(format!("{} block not ended", name)))
 }
 
 pub fn tt_if_yes<I: Iterator<Item = FlatItem>>(

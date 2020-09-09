@@ -169,6 +169,9 @@ impl TData {
             TData::UInt(u) => Some(*u > 0),
             TData::Int(i) => Some(*i != 0),
             TData::Float(f) => Some(*f != 0.),
+            TData::List(l) => Some(l.len() > 0),
+            TData::Map(m) => Some(m.len() > 0),
+            TData::Null => Some(false),
             _ => None,
         }
     }

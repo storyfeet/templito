@@ -72,6 +72,23 @@ pub fn md<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     Ok(TBoco::Co(TData::String(r_str)))
 }
 
+pub fn html_esc<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+    let mut res = String::new();
+    for a in args {
+        for c in a.to_string().chars() {
+            match c {
+                '&' => res.push_str("&amp;"),
+                '<' => res.push_str("&lt;"),
+                '>' => res.push_str("&gt;"),
+                '"' => res.push_str("&quot"),
+                '\'' => res.push_str("&#39"),
+                c => res.push(c),
+            }
+        }
+    }
+    Ok(TBoco::Co(TData::String(res)))
+}
+
 pub fn table<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     if l.len() == 0 {
         return Err(ea_str("Table requires 1 or two string entries."));
