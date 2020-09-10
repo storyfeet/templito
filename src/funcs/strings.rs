@@ -60,6 +60,19 @@ pub fn replace<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
             .replace(&args[1].to_string(), &args[2].to_string()),
     ))
 }
+pub fn replace_n<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+    if args.len() < 3 {
+        return Err(ea_str(
+            "'replace' requires a string then substr to replace with substr",
+        ));
+    }
+    let n = args.get(3).and_then(|v| v.as_usize()).unwrap_or(1);
+    b_ok(TData::String(args[0].to_string().replacen(
+        &args[1].to_string(),
+        &args[2].to_string(),
+        n,
+    )))
+}
 
 pub fn md<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     let mut r_str = String::new();
