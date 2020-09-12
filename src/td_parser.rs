@@ -91,7 +91,10 @@ parser!(
 
 parser! {
     (TString->String)
-    "\"".ig_then(chars_until(TChar, '"')).map(|(a, _)| a)
+    or!(
+        "\"".ig_then(chars_until(TChar, '"')).map(|(a, _)| a),
+        last("r#\"",chars_until(Any.one(),"\"#")).map(|(a,_)|a),
+    )
 }
 
 parser! {

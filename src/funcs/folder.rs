@@ -98,7 +98,11 @@ pub fn scan_dir(pb: PathBuf) -> Box<TFunc> {
         let dp = args.get(1).and_then(|v| v.as_usize()).unwrap_or(0);
         let sp = ea_op(safe_path(&pb, &folder.to_string()), "Broken File path")?;
         let mut res = Vec::new();
-        do_scan_dir(&sp, &PathBuf::new(), &fm, dp, &mut res)?;
+        let filter = args
+            .get(2)
+            .and_then(|a| regex::Regex::new(&a.to_string()).ok());
+
+        do_scan_dir(&sp, &PathBuf::new(), &fm, dp, &mut res, filter.as_ref())?;
 
         Ok(TBoco::Co(TData::List(res)))
     })
@@ -110,6 +114,7 @@ fn do_scan_dir(
     fm: &BasicFuncs,
     mdepth: usize,
     res_list: &mut Vec<TData>,
+    reg: Option<&regex::Regex>,
 ) -> anyhow::Result<()> {
     for item in std::fs::read_dir(full)?
         .filter_map(|s| s.ok())
@@ -118,10 +123,15 @@ fn do_scan_dir(
         let ftype = item.file_type()?;
         if ftype.is_file() {
             let mut idata = HashMap::new();
-            idata.insert(
-                "item_full_path".to_string(),
-                TData::String(item.path().display().to_string()),
-            );
+            let full_path = item.path().display().to_string();
+            if let Some(rv) = reg.clone() {
+                if !rv.is_match(&full_path) {
+                    println!("Regex No Match '{}'", full_path);
+                    continue;
+                }
+            }
+            idata.insert("item_full_path".to_string(), TData::String(full_path));
+
             idata.insert(
                 "item_path".to_string(),
                 TData::String(short.display().to_string()),
@@ -149,7 +159,7 @@ fn do_scan_dir(
             }
             let short = short.join(item.file_name());
             let full = full.join(item.file_name());
-            do_scan_dir(&full, &short, fm, mdepth - 1, res_list)?;
+            do_scan_dir(&full, &short, fm, mdepth - 1, res_list, reg)?;
         }
     }
     Ok(())

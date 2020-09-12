@@ -53,6 +53,7 @@ pub trait WithFuncs: Sized {
             .with_fn("str_replace", strings::replace)
             .with_fn("str_replace_n", strings::replace_n)
             .with_fn("html_esc", strings::html_esc)
+            .with_fn("regex", strings::regex)
     }
 
     fn with_math(self) -> Self {

@@ -112,3 +112,11 @@ pub fn table<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     };
     super::table::table(&l[0].to_string(), &tdata).map(|s| TBoco::Co(TData::String(s)))
 }
+
+pub fn regex<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+    if l.len() < 2 {
+        return Err(ea_str("Regex test requires String , Regex_String"));
+    }
+    let reg = regex::Regex::new(&l[1].to_string())?;
+    b_ok(TData::Bool(reg.is_match(&l[0].to_string())))
+}
