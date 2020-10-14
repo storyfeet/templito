@@ -8,6 +8,7 @@ mod bools;
 mod exec;
 mod file;
 mod folder;
+mod format;
 mod lists;
 mod maps;
 pub mod math;
@@ -27,9 +28,15 @@ pub trait WithFuncs: Sized {
             .with_files()
             .with_lists()
             .with_maps()
+            .with_format()
     }
     fn with_maps(self) -> Self {
         self.with_fn("map", maps::map)
+    }
+
+    fn with_format(self) -> Self {
+        self.with_fn("r_json", format::r_json)
+            .with_fn("r_card", format::r_card)
     }
 
     fn with_lists(self) -> Self {
