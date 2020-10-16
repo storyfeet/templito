@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use tparam::*;
 
-fn safe_path(p: &Path, s: &str) -> Option<PathBuf> {
+pub fn safe_path(p: &Path, s: &str) -> Option<PathBuf> {
     let pres = p.join(s);
     if pres.starts_with(p) {
         return Some(pres);

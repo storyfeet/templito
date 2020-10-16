@@ -213,3 +213,28 @@ pub fn filter<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
         Err(ea_str("Filter requires List and PipeString"))
     }
 }
+
+pub fn groups<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+    let n = args
+        .get(0)
+        .ok_or(ea_str("'groups' requires an int and a list"))?
+        .as_usize()
+        .ok_or(ea_str("'groups' requires an int and a list"))?;
+    let gsize = match n {
+        0 => 1,
+        v => v,
+    };
+    let l = args
+        .get(1)
+        .ok_or(ea_str("'groups' requires an int and a list"))?;
+    let l = match l.deref() {
+        TData::List(l) => l,
+        _ => return Err(ea_str("'groups' second arg must be a list")),
+    };
+    let mut res = Vec::new();
+    for g in 0..l.len() / gsize {
+        let end = ((g + 1) * gsize).min(l.len());
+        res.push(TData::List((&l[g * gsize..end]).to_vec()));
+    }
+    b_ok(TData::List(res))
+}

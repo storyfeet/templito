@@ -14,6 +14,7 @@ mod maps;
 pub mod math;
 mod strings;
 mod table;
+mod write;
 
 pub trait WithFuncs: Sized {
     fn with_f<K: Into<String>>(self, k: K, f: Box<TFunc>) -> Self;
@@ -49,6 +50,7 @@ pub trait WithFuncs: Sized {
             .with_fn("filter", lists::filter)
             .with_fn("len", lists::len)
             .with_fn("slice", lists::slice)
+            .with_fn("groups", lists::groups)
     }
 
     fn with_strings(self) -> Self {
@@ -107,6 +109,11 @@ pub trait WithFuncs: Sized {
     fn with_exec(self) -> Self {
         self.with_fn("exec", exec::exec)
             .with_fn("exec_stdin", exec::exec_stdin)
+    }
+
+    fn with_write_lock<P: Into<PathBuf>>(self, pb: P) -> Self {
+        let pb: PathBuf = pb.into();
+        self.with_f("write", write::write(pb.clone()))
     }
 }
 
