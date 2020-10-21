@@ -15,6 +15,17 @@ pub fn eq<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     }
     b_ok(TData::Bool(true))
 }
+pub fn eq_any<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+    if l.len() == 0 {
+        return Err(ea_str("Not enough args for eq"));
+    }
+    for a in &l[1..] {
+        if *a == l[0] {
+            return b_ok(TData::Bool(true));
+        }
+    }
+    b_ok(TData::Bool(false))
+}
 pub fn neq<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     if l.len() == 0 {
         return Err(ea_str("Not enough args for neq"));

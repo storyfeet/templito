@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use std::fmt;
 
 use crate::template::TreeTemplate;
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub enum TData {
     Bool(bool),
     String(String),
@@ -38,6 +38,23 @@ impl PartialOrd for TData {
     }
 }
 
+impl PartialEq for TData {
+    fn eq(&self, other: &Self) -> bool {
+        use math::NumMatch::*;
+        use TData::*;
+        match math::num_match(self, other) {
+            Some(I(a, b)) => return a == b,
+            Some(U(a, b)) => return a == b,
+            Some(F(a, b)) => return a == b,
+            None => {}
+        }
+        match (self, other) {
+            (String(a), String(b)) => return a == b,
+            (Date(a), Date(b)) => return a == b,
+            _ => false,
+        }
+    }
+}
 impl fmt::Display for TData {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use TData::*;

@@ -120,3 +120,49 @@ pub fn regex<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     let reg = regex::Regex::new(&l[1].to_string())?;
     b_ok(TData::Bool(reg.is_match(&l[0].to_string())))
 }
+
+fn _word_wrap(s: &str, len: usize) -> Vec<String> {
+    let mut res = Vec::new();
+    let mut index = 0;
+    let mut count = 0;
+    let mut brk = None;
+    for (k, c) in s.char_indices() {
+        count += 1;
+        match c {
+            ' ' | '\t' => brk = Some(k),
+            '\n' => {
+                res.push(s[index..k].to_string());
+                count = 0;
+                index = k;
+                brk = None;
+            }
+            _ => {}
+        }
+        if count >= len {
+            if let Some(b) = brk {
+                res.push(s[index..b].trim().to_string());
+                index = b;
+                count = 0;
+                brk = None;
+            }
+        }
+    }
+    if count > 0 {
+        println!("Remaining = {}", s[index..].trim().to_string());
+        res.push(s[index..].trim().to_string());
+    }
+    res
+}
+
+pub fn word_wrap<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+    if l.len() < 2 {
+        return Err(ea_str("'word_wrap' requires string and wrap_length"));
+    }
+    let n = l[1]
+        .as_usize()
+        .ok_or(ea_str("'word_wrap' needs a length as usize"))?;
+    let w = _word_wrap(&l[0].to_string(), n);
+    return b_ok(TData::List(
+        w.into_iter().map(|s| TData::String(s)).collect(),
+    ));
+}

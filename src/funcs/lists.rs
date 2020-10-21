@@ -232,9 +232,28 @@ pub fn groups<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
         _ => return Err(ea_str("'groups' second arg must be a list")),
     };
     let mut res = Vec::new();
-    for g in 0..l.len() / gsize {
+    if l.len() == 0 {
+        return b_ok(TData::List(res));
+    }
+    for g in 0..1 + ((l.len() - 1) / gsize) {
         let end = ((g + 1) * gsize).min(l.len());
         res.push(TData::List((&l[g * gsize..end]).to_vec()));
     }
+    assert_eq!(
+        res.len(),
+        ((l.len() - 1) / gsize) + 1,
+        "GroupSize Not match"
+    );
     b_ok(TData::List(res))
+}
+
+pub fn append<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+    let mut res = Vec::new();
+    for a in args {
+        match a.deref() {
+            TData::List(l) => res.extend(l.into_iter().map(|d| d.clone())),
+            v => res.push(v.clone()),
+        }
+    }
+    return b_ok(TData::List(res));
 }

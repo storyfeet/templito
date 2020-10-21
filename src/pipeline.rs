@@ -72,7 +72,9 @@ pub fn run_command<'a, TM: TempManager, FM: FuncManager>(
     }
     if cname == "select" {
         if args.len() < 3 {
-            return Err(Error::Str("n_sel requires at least 1 test and 2 possible values").into());
+            return Err(
+                Error::Str("'select' requires at least 1 test and 2 possible values").into(),
+            );
         }
         let bval = args[0].run(scope, tm, fm)?;
         let bval = if let Some(n) = bval.as_usize() {
@@ -84,7 +86,7 @@ pub fn run_command<'a, TM: TempManager, FM: FuncManager>(
         };
 
         if bval > args.len() {
-            return Err(Error::Str("select first param must choose return a value less than the length of the rest of the args").into());
+            return Err(Error::Str("'select' first param must choose return a value less than the length of the rest of the args").into());
         }
 
         return args[bval].run(scope, tm, fm);

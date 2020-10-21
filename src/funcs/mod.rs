@@ -43,6 +43,7 @@ pub trait WithFuncs: Sized {
     fn with_lists(self) -> Self {
         self.with_fn("list", lists::list)
             .with_fn("sort", lists::sort)
+            .with_fn("append", lists::append)
             .with_fn("sort_on", lists::sort_on)
             .with_fn("bin_seatch", lists::bin_search)
             .with_fn("bin_get", lists::bin_get)
@@ -63,6 +64,7 @@ pub trait WithFuncs: Sized {
             .with_fn("str_replace_n", strings::replace_n)
             .with_fn("html_esc", strings::html_esc)
             .with_fn("regex", strings::regex)
+            .with_fn("word_wrap", strings::word_wrap)
     }
 
     fn with_math(self) -> Self {
@@ -76,6 +78,7 @@ pub trait WithFuncs: Sized {
     fn with_bools(self) -> Self {
         self.with_fn("eq", bools::eq)
             .with_fn("neq", bools::neq)
+            .with_fn("eq_any", bools::eq_any)
             .with_fn("gt", bools::gt)
             .with_fn("gte", bools::gte)
             .with_fn("lt", bools::lt)
