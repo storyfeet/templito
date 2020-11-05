@@ -63,7 +63,7 @@ pub fn run_command<'a, TM: TempManager, FM: FuncManager>(
     if cname == "first" {
         for p in args {
             if let Ok(res) = p.run(scope, tm, fm) {
-                if res.deref() != &TData::Null {
+                if *res.deref() != TData::Null {
                     return Ok(res);
                 }
             }

@@ -14,6 +14,7 @@ mod maps;
 pub mod math;
 mod random;
 mod strings;
+mod svg;
 mod table;
 mod write;
 
@@ -36,6 +37,14 @@ pub trait WithFuncs: Sized {
 
     fn with_rand(self) -> Self {
         self.with_fn("rand", random::get_rand)
+    }
+    fn with_svg(self) -> Self {
+        self.with_fn("xy", svg::xy)
+            .with_fn("xywh", svg::xywh)
+            .with_fn("xy12", svg::xy12)
+            .with_fn("fl_stk", svg::fl_stk)
+            .with_fn("xml_esc", svg::xml_esc)
+            .with_fn("font", svg::font)
     }
     fn with_maps(self) -> Self {
         self.with_fn("map", maps::map)

@@ -51,6 +51,7 @@ impl PartialEq for TData {
         match (self, other) {
             (String(a), String(b)) => return a == b,
             (Date(a), Date(b)) => return a == b,
+            (Null, Null) => true,
             _ => false,
         }
     }

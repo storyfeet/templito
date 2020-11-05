@@ -33,3 +33,16 @@ pub struct WrapErr<E: std::error::Error + Debug + Clone> {
     pub e: Option<E>,
     pub s: String,
 }
+
+pub trait OpError {
+    type Res;
+    fn e_str(self, s: &'static str) -> Result<Self::Res, Error>;
+}
+
+impl<A> OpError for Option<A> {
+    type Res = A;
+
+    fn e_str(self, s: &'static str) -> Result<Self::Res, Error> {
+        self.ok_or(Error::Str(s))
+    }
+}
