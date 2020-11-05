@@ -162,6 +162,22 @@ impl TreeItem {
                         }
                         Ok(res)
                     }
+                    TData::UInt(n) => {
+                        for (listn, listv) in (0..n).enumerate() {
+                            scope.set(k, TData::UInt(listn));
+                            scope.set(v, TData::UInt(listv));
+                            res.push_str(&run_block(&b, scope, tm, fm)?);
+                        }
+                        Ok(res)
+                    }
+                    TData::Int(n) => {
+                        for (listn, listv) in (0..n).enumerate() {
+                            scope.set(k, TData::UInt(listn));
+                            scope.set(v, TData::Int(listv));
+                            res.push_str(&run_block(&b, scope, tm, fm)?);
+                        }
+                        Ok(res)
+                    }
                     _ => Err(ea_str("Cannot loop over non map or list")),
                 }
             }

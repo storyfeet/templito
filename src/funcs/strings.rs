@@ -148,7 +148,6 @@ fn _word_wrap(s: &str, len: usize) -> Vec<String> {
         }
     }
     if count > 0 {
-        println!("Remaining = {}", s[index..].trim().to_string());
         res.push(s[index..].trim().to_string());
     }
     res

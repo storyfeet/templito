@@ -56,7 +56,7 @@ pub fn sub<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
         }
         Some(F(a, b)) => Ok(TBoco::Co(TData::Float(a - b))),
         Some(I(a, b)) => Ok(TBoco::Co(TData::Int(a - b))),
-        _ => Err(ea_str("Cannot add non numeric values")),
+        _ => Err(ea_str("Cannot sub non numeric values")),
     })
 }
 

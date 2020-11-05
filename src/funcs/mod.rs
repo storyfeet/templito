@@ -12,6 +12,7 @@ mod format;
 mod lists;
 mod maps;
 pub mod math;
+mod random;
 mod strings;
 mod table;
 mod write;
@@ -30,6 +31,11 @@ pub trait WithFuncs: Sized {
             .with_lists()
             .with_maps()
             .with_format()
+            .with_rand()
+    }
+
+    fn with_rand(self) -> Self {
+        self.with_fn("rand", random::get_rand)
     }
     fn with_maps(self) -> Self {
         self.with_fn("map", maps::map)
