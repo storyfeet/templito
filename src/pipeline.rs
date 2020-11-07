@@ -56,9 +56,9 @@ pub fn run_command<'a, TM: TempManager, FM: FuncManager>(
         }
         if let Some(tp) = tds.get(0) {
             if let TData::Template(t) = tp.deref() {
-                let (s, mp) = t.run_exp(&v, tm, fm)?;
-                if let Some(v) = mp.get("return") {
-                    return b_ok(v.clone());
+                let (s, mut mp) = t.run_exp(&v, tm, fm)?;
+                if let Some(v) = mp.remove("return") {
+                    return b_ok(v);
                 }
                 return b_ok(TData::String(s));
             }
