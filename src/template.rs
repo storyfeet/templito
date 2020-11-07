@@ -36,6 +36,7 @@ pub enum TreeItem {
         b: Block,
     },
     Define(String, Block),
+    Global(String, Block),
     Let(Vec<(String, Pipeline)>),
     Export(Vec<(String, Pipeline)>),
     AtLet(String, Block),
@@ -60,6 +61,7 @@ pub enum FlatItem {
     AtLet(String),
     AtExport(String),
     Define(String),
+    Global(String),
     Let(Vec<(String, Pipeline)>),
     Export(Vec<(String, Pipeline)>),
     Block(String, Vec<Pipeline>),
@@ -224,6 +226,10 @@ impl TreeItem {
                 scope.set(name, TData::Template(TreeTemplate { v: block.clone() }));
                 Ok(String::new())
             }
+            TreeItem::Global(name, block) => {
+                tm.insert_t(name.to_string(), TreeTemplate { v: block.clone() });
+                Ok(String::new())
+            }
         }
     }
 }
@@ -298,6 +304,7 @@ pub fn tt_basic<I: Iterator<Item = FlatItem>>(fi: FlatItem, it: &mut I) -> Resul
         FlatItem::AtExport(v) => TreeItem::AtExport(v, tt_name_block("export", it)?),
 
         FlatItem::Define(v) => TreeItem::Define(v, tt_name_block("define", it)?),
+        FlatItem::Global(v) => TreeItem::Global(v, tt_name_block("global", it)?),
         FlatItem::If(p) => tt_if_yes(p, it)?,
         FlatItem::For(k, v, p) => TreeItem::For {
             k,

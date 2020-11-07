@@ -30,7 +30,11 @@ pub fn run_values<'a, TM: TempManager, FM: FuncManager>(
             for a in args {
                 v2.push(a);
             }
-            b_ok(TData::String(in_tp.run(&v2, tm, fm)?))
+            let (s, mut mp) = in_tp.run_exp(&v2, tm, fm)?;
+            if let Some(v) = mp.remove("return") {
+                return b_ok(v);
+            }
+            b_ok(TData::String(s))
         }
         Err(e) => Err(e.context(format!("Getting template {}", cname))),
     }

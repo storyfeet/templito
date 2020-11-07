@@ -169,6 +169,36 @@ fn sort_on() {
 }
 
 #[test]
+fn return_non_str() {
+    let fm = func_man::default_func_man();
+    let tt = TreeTemplate::from_str(
+        r#"\
+        {{define cow}}
+        {{return (add $0 $1)}} 
+        {{/define}}\
+        {{run $cow 3 5}}"#,
+    )
+    .unwrap();
+    let res = tt.run(&[], &mut NoTemplates, &fm).unwrap();
+    assert_eq!(res, "8");
+}
+
+#[test]
+fn global_def() {
+    let fm = func_man::default_func_man();
+    let tt = TreeTemplate::from_str(
+        r#"\
+        {{global cow}}
+        {{return (add $0 $1)}} 
+        {{/global}}\
+        {{cow 3 5}}"#,
+    )
+    .unwrap();
+    let res = tt.run(&[], &mut BasicTemps::new(), &fm).unwrap();
+    assert_eq!(res, "8");
+}
+
+#[test]
 fn filter() {
     let fm = func_man::default_func_man();
     let tt = TreeTemplate::from_str(
