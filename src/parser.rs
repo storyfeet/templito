@@ -65,6 +65,7 @@ parser! {(Item->FlatItem)
             wn__(keyword("/if")).map(|_|FlatItem::EndIf),
             wn__(keyword("/for")).map(|_|FlatItem::EndFor),
             (wn_(keyword("if")),wn__(Pipe)).map(|(_,p)|FlatItem::If(p)),
+            (wn_(keyword("return")),wn__(Pipe)).map(|(_,p)|FlatItem::Return(p)),
             (wn_(keyword("elif")),wn__(Pipe)).map(|(_,p)|FlatItem::Elif(p)),
             (wn_(keyword("for")),wn_(Ident),wn_(Ident),wn_(keyword("in")),wn__(Pipe)).map(|(_,k,v,_,p)| FlatItem::For(k,v,p)),
             (wn_(keyword("define")),wn__(Ident)).map(|(_,n)|FlatItem::Define(n)),

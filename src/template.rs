@@ -40,6 +40,7 @@ pub enum TreeItem {
     Export(Vec<(String, Pipeline)>),
     AtLet(String, Block),
     AtExport(String, Block),
+    Return(Pipeline),
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -63,6 +64,7 @@ pub enum FlatItem {
     Export(Vec<(String, Pipeline)>),
     Block(String, Vec<Pipeline>),
     EndBlock(String),
+    Return(Pipeline),
     EndIf,
     EndFor,
 }
@@ -123,6 +125,11 @@ impl TreeItem {
                     let vsolid = v.run(&scope, tm, fm)?.concrete();
                     scope.set_root(k.to_string(), vsolid);
                 }
+                Ok(String::new())
+            }
+            TreeItem::Return(pipe) => {
+                let psolid = pipe.run(&scope, tm, fm)?.concrete();
+                scope.set_root("return".to_string(), psolid);
                 Ok(String::new())
             }
             TreeItem::Pipe(p) => {
@@ -230,6 +237,7 @@ impl TreeTemplate {
     ) -> anyhow::Result<String> {
         self.run_exp(params, tm, fm).map(|(s, _)| s)
     }
+
     pub fn run_exp<TM: TempManager, FM: FuncManager>(
         &self,
         params: &[&dyn TParam],
@@ -305,6 +313,7 @@ pub fn tt_basic<I: Iterator<Item = FlatItem>>(fi: FlatItem, it: &mut I) -> Resul
                 block,
             }
         }
+        FlatItem::Return(p) => TreeItem::Return(p),
         FlatItem::Comment => TreeItem::Comment,
         e => return Err(Error::String(format!("Unexpected {:?}", e))),
     })

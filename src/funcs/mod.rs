@@ -60,7 +60,7 @@ pub trait WithFuncs: Sized {
             .with_fn("sort", lists::sort)
             .with_fn("append", lists::append)
             .with_fn("sort_on", lists::sort_on)
-            .with_fn("bin_seatch", lists::bin_search)
+            .with_fn("bin_search", lists::bin_search)
             .with_fn("bin_get", lists::bin_get)
             .with_fn("get", lists::get)
             .with_fn("filter", lists::filter)
