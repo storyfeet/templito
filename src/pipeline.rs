@@ -36,7 +36,7 @@ pub fn run_values<'a, TM: TempManager, FM: FuncManager>(
             }
             b_ok(TData::String(s))
         }
-        Err(e) => Err(e.context(format!("Getting template {}", cname))),
+        Err(e) => Err(Error::String(format!("Getting template {}, {}", cname, e)).into()),
     }
 }
 
@@ -48,7 +48,6 @@ pub fn run_command<'a, TM: TempManager, FM: FuncManager>(
     fm: &FM,
 ) -> anyhow::Result<TBoco<'a>> {
     if cname == "run" {
-        println!("Running run");
         let mut tds = Vec::new();
         for p in args {
             tds.push(p.run(scope, tm, fm)?);
