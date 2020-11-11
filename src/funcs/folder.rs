@@ -3,8 +3,10 @@ use crate::*;
 use boco::*;
 use err::*;
 use func_man::*;
+use image::GenericImageView;
 use std::collections::HashMap;
 use std::io::Read;
+use std::ops::Deref;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use tparam::*;
@@ -85,6 +87,32 @@ pub fn file(pb: PathBuf) -> Box<TFunc> {
             f.read_to_string(&mut res)?;
         }
         b_ok(TData::String(res))
+    })
+}
+
+pub fn file_bytes(pb: PathBuf) -> Box<TFunc> {
+    Box::new(move |l| {
+        let mut res = Vec::new();
+        for d in l {
+            let sp = ea_op(safe_path(&pb, &d.to_string()), "Broken File path")?;
+            let mut f = std::fs::File::open(sp)?;
+            f.read_to_end(&mut res)?;
+        }
+        b_ok(TData::Bytes(res))
+    })
+}
+
+pub fn file_img_dimensions(pb: PathBuf) -> Box<TFunc> {
+    Box::new(move |l| {
+        if let TData::String(d) = l.get(0).e_str("file_img_dimensions needs path")?.deref() {
+            let sp = ea_op(safe_path(&pb, &d.to_string()), "Broken File path")?;
+            let img = image::open(sp)?;
+            let mut map = HashMap::new();
+            map.insert("w".to_string(), TData::UInt(img.width() as usize));
+            map.insert("h".to_string(), TData::UInt(img.height() as usize));
+            return b_ok(TData::Map(map));
+        }
+        Err(ea_str("file_img_dimensions path should be string"))
     })
 }
 

@@ -5,13 +5,14 @@ use func_man::*;
 use std::path::PathBuf;
 
 mod bools;
+mod bytes;
 mod exec;
-mod file;
 mod folder;
 mod format;
 mod lists;
 mod maps;
 pub mod math;
+mod path;
 mod random;
 mod strings;
 mod svg;
@@ -28,11 +29,17 @@ pub trait WithFuncs: Sized {
         self.with_bools()
             .with_strings()
             .with_math()
-            .with_files()
+            .with_path()
             .with_lists()
             .with_maps()
             .with_format()
             .with_rand()
+            .with_bytes()
+    }
+
+    fn with_bytes(self) -> Self {
+        self.with_fn("as_base64", bytes::as_base64)
+            .with_fn("from_base64", bytes::from_base64)
     }
 
     fn with_rand(self) -> Self {
@@ -104,24 +111,29 @@ pub trait WithFuncs: Sized {
             .with_fn("nor", bools::nor)
     }
 
-    fn with_files(self) -> Self {
-        self.with_fn("parent", file::parent)
-            .with_fn("join", file::join)
-            .with_fn("bread_crumbs", file::bread_crumbs)
-            .with_fn("base_name", file::base_name)
-            .with_fn("base_name_sure", file::base_name_sure)
-            .with_fn("with_ext", file::with_ext)
-            .with_fn("stem", file::stem)
-            .with_fn("full_stem", file::full_stem)
+    fn with_path(self) -> Self {
+        self.with_fn("parent", path::parent)
+            .with_fn("join", path::join)
+            .with_fn("bread_crumbs", path::bread_crumbs)
+            .with_fn("base_name", path::base_name)
+            .with_fn("base_name_sure", path::base_name_sure)
+            .with_fn("with_ext", path::with_ext)
+            .with_fn("stem", path::stem)
+            .with_fn("full_stem", path::full_stem)
     }
 
     fn with_folder_lock<P: Into<PathBuf>>(self, pb: P) -> Self {
         let pb: PathBuf = pb.into();
         self.with_f("dir", folder::dir(pb.clone()))
             .with_f("file", folder::file(pb.clone()))
+            .with_f("file_bytes", folder::file_bytes(pb.clone()))
             .with_f("is_file", folder::is_file(pb.clone()))
             .with_f("is_dir", folder::is_dir(pb.clone()))
             .with_f("scan_dir", folder::scan_dir(pb.clone()))
+            .with_f(
+                "file_img_dimensions",
+                folder::file_img_dimensions(pb.clone()),
+            )
     }
 
     fn with_exec(self) -> Self {

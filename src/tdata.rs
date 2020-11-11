@@ -17,6 +17,7 @@ pub enum TData {
     Template(TreeTemplate),
     Null,
     Date(chrono::NaiveDate),
+    Bytes(Vec<u8>),
 }
 
 impl PartialOrd for TData {
@@ -78,6 +79,7 @@ impl fmt::Display for TData {
             Null => write!(f, "NULL"),
             Template(_t) => write!(f, "TEMPLATE"),
             Date(d) => write!(f, "{}", d.format("%d/%m/%Y")),
+            Bytes(b) => write!(f, "b\"{:?}\"", b),
         }
     }
 }
@@ -137,6 +139,7 @@ impl TData {
             Date(_) => 7,
             Float(_) => 8,
             String(_) => 9,
+            Bytes(_) => 10,
         }
     }
 
