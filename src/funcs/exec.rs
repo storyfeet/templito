@@ -36,3 +36,21 @@ pub fn exec_stdin<'a>(args: &[TBoco<'a>]) -> Result<TBoco<'a>, anyhow::Error> {
 
     b_ok(TData::String(String::from_utf8(op.stdout)?))
 }
+
+pub fn env<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+    if args.len() == 0 {
+        e_str("env_var needs <varname>")?;
+    }
+    std::env::var(&args[0].to_string())
+        .map(|v| TBoco::Co(TData::String(v)))
+        .ok()
+        .e_str("No Var")
+}
+
+pub fn env_maybe<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+    if args.len() == 0 {
+        e_str("env_var needs <varname>")?;
+    }
+    let s = std::env::var(&args[0].to_string()).unwrap_or(String::new());
+    return b_ok(TData::String(s));
+}

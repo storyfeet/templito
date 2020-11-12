@@ -9,6 +9,7 @@ mod bytes;
 mod exec;
 mod folder;
 mod format;
+mod free_file;
 mod lists;
 mod maps;
 pub mod math;
@@ -136,9 +137,21 @@ pub trait WithFuncs: Sized {
             )
     }
 
+    fn with_free_files(self) -> Self {
+        self.with_fn("dir", free_file::dir)
+            .with_fn("file", free_file::file)
+            .with_fn("file_bytes", free_file::file_bytes)
+            .with_fn("is_file", free_file::is_file)
+            .with_fn("is_dir", free_file::is_dir)
+            .with_fn("scan_dir", free_file::scan_dir)
+            .with_fn("file_img_dimensions", free_file::file_img_dimensions)
+    }
+
     fn with_exec(self) -> Self {
         self.with_fn("exec", exec::exec)
             .with_fn("exec_stdin", exec::exec_stdin)
+            .with_fn("env", exec::env)
+            .with_fn("env_maybe", exec::env_maybe)
     }
 
     fn with_write_lock<P: Into<PathBuf>>(self, pb: P) -> Self {
