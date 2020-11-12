@@ -1,11 +1,11 @@
 use crate::*;
-use err::*;
+use err_tools::*;
 use tdata::*;
 use tparam::*;
 
 pub fn fold<T: Clone, F: Fn(T, &T) -> anyhow::Result<T>>(l: &[T], f: F) -> anyhow::Result<T> {
     if l.len() == 0 {
-        return Err(ea_str("No arguments given").into());
+        return e_str("No arguments given");
     }
     let mut res = l[0].clone();
     for a in &l[1..] {
@@ -41,7 +41,7 @@ pub fn add<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
         Some(U(a, b)) => Ok(TBoco::Co(TData::UInt(a + b))),
         Some(F(a, b)) => Ok(TBoco::Co(TData::Float(a + b))),
         Some(I(a, b)) => Ok(TBoco::Co(TData::Int(a + b))),
-        _ => Err(ea_str("Cannot add non numeric values")),
+        _ => e_str("Cannot add non numeric values"),
     })
 }
 
@@ -56,7 +56,7 @@ pub fn sub<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
         }
         Some(F(a, b)) => Ok(TBoco::Co(TData::Float(a - b))),
         Some(I(a, b)) => Ok(TBoco::Co(TData::Int(a - b))),
-        _ => Err(ea_str("Cannot sub non numeric values")),
+        _ => e_str("Cannot sub non numeric values"),
     })
 }
 
@@ -65,7 +65,7 @@ pub fn mul<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
         Some(U(a, b)) => Ok(TBoco::Co(TData::UInt(a * b))),
         Some(F(a, b)) => Ok(TBoco::Co(TData::Float(a * b))),
         Some(I(a, b)) => Ok(TBoco::Co(TData::Int(a * b))),
-        _ => Err(ea_str("Cannot add non numeric values")),
+        _ => e_str("Cannot add non numeric values"),
     })
 }
 
@@ -74,7 +74,7 @@ pub fn div<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
         Some(U(a, b)) => Ok(TBoco::Co(TData::UInt(a / b))),
         Some(F(a, b)) => Ok(TBoco::Co(TData::Float(a / b))),
         Some(I(a, b)) => Ok(TBoco::Co(TData::Int(a / b))),
-        _ => Err(ea_str("Cannot add non numeric values")),
+        _ => e_str("Cannot add non numeric values"),
     })
 }
 
@@ -83,6 +83,6 @@ pub fn modulo<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
         Some(U(a, b)) => Ok(TBoco::Co(TData::UInt(a % b))),
         Some(F(a, b)) => Ok(TBoco::Co(TData::Float(a % b))),
         Some(I(a, b)) => Ok(TBoco::Co(TData::Int(a % b))),
-        _ => Err(ea_str("Cannot add non numeric values")),
+        _ => e_str("Cannot add non numeric values"),
     })
 }

@@ -1,5 +1,5 @@
-use crate::err::ea_str;
 use crate::*;
+use err_tools::*;
 use std::collections::HashMap;
 use std::ops::Deref;
 use tparam::*;
@@ -12,7 +12,7 @@ pub fn map<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
             TData::String(s) => {
                 res.insert(s.clone(), v.clone().concrete());
             }
-            _ => return Err(ea_str("The first part of each map-pair must be string")),
+            _ => return e_str("The first part of each map-pair must be string"),
         }
     }
     Ok(TBoco::Co(TData::Map(res)))

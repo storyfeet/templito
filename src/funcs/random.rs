@@ -1,6 +1,6 @@
 use super::*;
-use crate::err::ea_str;
 use boco::*;
+use err_tools::*;
 use rand::prelude::*;
 use std::ops::Deref;
 use tdata::*;
@@ -17,7 +17,7 @@ pub fn get_rand<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
             (TData::Int(a), TData::Int(b)) => b_ok(TData::Int(rg.gen_range(a, b))),
             (TData::UInt(a), TData::UInt(b)) => b_ok(TData::UInt(rg.gen_range(a, b))),
             (TData::Float(a), TData::Float(b)) => b_ok(TData::Float(rg.gen_range(a, b))),
-            _ => Err(ea_str("Could not gen random")),
+            _ => e_str("Could not gen random"),
         };
     }
 
@@ -27,12 +27,12 @@ pub fn get_rand<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
         TData::Float(n) => b_ok(TData::Float(rg.gen::<f64>() * n)),
         TData::List(l) => {
             if l.len() == 0 {
-                Err(ea_str("Could not select random from empty list"))
+                e_str("Could not select random from empty list")
             } else {
                 let n = rg.gen_range(0, l.len());
                 Ok(TBoco::Co(l[n].clone()))
             }
         }
-        _ => Err(ea_str("Could not gen random")),
+        _ => e_str("Could not gen random"),
     }
 }

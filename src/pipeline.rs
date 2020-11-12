@@ -1,7 +1,7 @@
 use crate::*;
 //use anyhow::Context;
 use boco::*;
-use err::Error;
+use err_tools::*;
 use func_man::FuncManager;
 use scope::Scope;
 use std::ops::Deref;
@@ -36,7 +36,7 @@ pub fn run_values<'a, TM: TempManager, FM: FuncManager>(
             }
             b_ok(TData::String(s))
         }
-        Err(e) => Err(Error::String(format!("Getting template {}, {}", cname, e)).into()),
+        Err(e) => e_string(format!("Getting template {}, {}", cname, e)),
     }
 }
 
@@ -79,9 +79,7 @@ pub fn run_command<'a, TM: TempManager, FM: FuncManager>(
     }
     if cname == "select" {
         if args.len() < 3 {
-            return Err(
-                Error::Str("'select' requires at least 1 test and 2 possible values").into(),
-            );
+            return e_str("'select' requires at least 1 test and 2 possible values");
         }
         let bval = args[0].run(scope, tm, fm)?;
         let bval = if let Some(n) = bval.as_usize() {
@@ -89,11 +87,11 @@ pub fn run_command<'a, TM: TempManager, FM: FuncManager>(
         } else if let Some(b) = bval.as_bool() {
             2 - (b as usize)
         } else {
-            return Err(Error::String(format!("As Bool failed on {}", bval.deref())).into());
+            return e_string(format!("As Bool failed on {}", bval.deref()));
         };
 
         if bval > args.len() {
-            return Err(Error::Str("'select' first param must choose return a value less than the length of the rest of the args").into());
+            return e_str("'select' first param must choose return a value less than the length of the rest of the args");
         }
 
         return args[bval].run(scope, tm, fm);
@@ -115,9 +113,7 @@ impl Pipeline {
     ) -> anyhow::Result<TBoco<'a>> {
         match self {
             Pipeline::Lit(v) => Ok(TBoco::Bo(v)),
-            Pipeline::Var(v) => scope
-                .get(v)
-                .ok_or(Error::String(format!("No Var by the name {:?}", v)).into()),
+            Pipeline::Var(v) => scope.get(v).e_string(format!("No Var by the name {:?}", v)),
             Pipeline::Command(c, pars) => run_command(c, pars, scope, tm, fm),
         }
     }

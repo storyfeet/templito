@@ -1,12 +1,12 @@
 use crate::*;
 use boco::*;
-use err::*;
+use err_tools::*;
 //use std::ops::Deref;
 use tparam::*;
 
 pub fn eq<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     if l.len() == 0 {
-        return Err(ea_str("Not enough args for eq"));
+        return e_str("Not enough args for eq");
     }
     for a in &l[1..] {
         if *a != l[0] {
@@ -17,7 +17,7 @@ pub fn eq<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
 }
 pub fn eq_any<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     if l.len() == 0 {
-        return Err(ea_str("Not enough args for eq"));
+        return e_str("Not enough args for eq");
     }
     for a in &l[1..] {
         if *a == l[0] {
@@ -28,7 +28,7 @@ pub fn eq_any<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
 }
 pub fn neq<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     if l.len() == 0 {
-        return Err(ea_str("Not enough args for neq"));
+        return e_str("Not enough args for neq");
     }
     for a in &l[1..] {
         if *a != l[0] {
@@ -40,7 +40,7 @@ pub fn neq<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
 
 pub fn gt<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     if l.len() == 0 {
-        return Err(ea_str("Not enough args for eq"));
+        return e_str("Not enough args for eq");
     }
     for a in &l[1..] {
         if l[0] > *a {
@@ -53,7 +53,7 @@ pub fn gt<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
 
 pub fn lt<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     if l.len() == 0 {
-        return Err(ea_str("Not enough args for lt"));
+        return e_str("Not enough args for lt");
     }
     for a in &l[1..] {
         if l[0] < *a {
@@ -66,7 +66,7 @@ pub fn lt<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
 
 pub fn gte<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     if l.len() == 0 {
-        return Err(ea_str("Not enough args for gte"));
+        return e_str("Not enough args for gte");
     }
     for a in &l[1..] {
         if !(l[0] >= *a) {
@@ -77,7 +77,7 @@ pub fn gte<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
 }
 pub fn lte<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     if l.len() == 0 {
-        return Err(ea_str("Not enough args for lte"));
+        return e_str("Not enough args for lte");
     }
     for a in &l[1..] {
         if !(l[0] <= *a) {

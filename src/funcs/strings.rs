@@ -1,6 +1,6 @@
 use crate::*;
 use boco::*;
-use err::*;
+use err_tools::*;
 use pulldown_cmark as mdown;
 use std::ops::Deref;
 use tparam::*;
@@ -18,12 +18,12 @@ pub fn cat<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
 
 pub fn split<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     if l.len() == 0 {
-        return Err(ea_str("Nothing to split"));
+        return e_str("Nothing to split");
     }
     let splitter = l.get(1).and_then(|n| n.deref().as_str()).unwrap_or("\n");
     l[0].deref()
         .as_str()
-        .ok_or(ea_str("To split Must be a string"))
+        .e_str("To split Must be a string")
         .map(|v| {
             TBoco::Co(TData::List(
                 v.split(splitter)
@@ -35,9 +35,7 @@ pub fn split<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
 
 pub fn contains<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     if args.len() < 2 {
-        return Err(ea_str(
-            "'contains' requires a string and then a list of potential substrings",
-        ));
+        return e_str("'contains' requires a string and then a list of potential substrings");
     }
     let s = args[0].to_string();
     for sub in args[1..].iter().map(|v| v.to_string()) {
@@ -50,9 +48,7 @@ pub fn contains<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
 
 pub fn replace<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     if args.len() < 3 {
-        return Err(ea_str(
-            "'replace' requires a string then substr to replace with substr",
-        ));
+        return e_str("'replace' requires a string then substr to replace with substr");
     }
     b_ok(TData::String(
         args[0]
@@ -62,9 +58,7 @@ pub fn replace<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
 }
 pub fn replace_n<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     if args.len() < 3 {
-        return Err(ea_str(
-            "'replace' requires a string then substr to replace with substr",
-        ));
+        return e_str("'replace' requires a string then substr to replace with substr");
     }
     let n = args.get(3).and_then(|v| v.as_usize()).unwrap_or(1);
     b_ok(TData::String(args[0].to_string().replacen(
@@ -104,7 +98,7 @@ pub fn html_esc<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
 
 pub fn table<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     if l.len() == 0 {
-        return Err(ea_str("Table requires 1 or two string entries."));
+        return e_str("Table requires 1 or two string entries.");
     }
     let tdata = match l.get(1) {
         Some(v) => v.to_string(),
@@ -115,7 +109,7 @@ pub fn table<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
 
 pub fn regex<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     if l.len() < 2 {
-        return Err(ea_str("Regex test requires String , Regex_String"));
+        return e_str("Regex test requires String , Regex_String");
     }
     let reg = regex::Regex::new(&l[1].to_string())?;
     b_ok(TData::Bool(reg.is_match(&l[0].to_string())))
@@ -155,11 +149,11 @@ fn _word_wrap(s: &str, len: usize) -> Vec<String> {
 
 pub fn word_wrap<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     if l.len() < 2 {
-        return Err(ea_str("'word_wrap' requires string and wrap_length"));
+        return e_str("'word_wrap' requires string and wrap_length");
     }
     let n = l[1]
         .as_usize()
-        .ok_or(ea_str("'word_wrap' needs a length as usize"))?;
+        .e_str("'word_wrap' needs a length as usize")?;
     let w = _word_wrap(&l[0].to_string(), n);
     return b_ok(TData::List(
         w.into_iter().map(|s| TData::String(s)).collect(),

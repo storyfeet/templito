@@ -1,8 +1,8 @@
 use super::*;
-use crate::err::ea_str;
 use crate::scope::Scope;
 use crate::temp_man::NoTemplates;
 use boco::*;
+use err_tools::*;
 use gobble::*;
 use parser::*;
 use std::cmp::Ordering;
@@ -31,16 +31,16 @@ pub fn len<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
 pub fn slice<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     let v = match args[0].deref() {
         TData::List(l) => l,
-        _ => return Err(ea_str("Slice requires List Num Num?")),
+        _ => return e_str("Slice requires List Num Num?"),
     };
 
     let s = match (
         args.get(1).and_then(|v| v.deref().as_usize()),
         args.get(2).and_then(|v| v.deref().as_usize()),
     ) {
-        (Some(a), Some(b)) => v.get(a..b).ok_or(ea_str("Slice our of range"))?,
-        (Some(a), _) => v.get(a..).ok_or(ea_str("Slice our of range"))?,
-        _ => return Err(ea_str("Slice requires List Num Num?")),
+        (Some(a), Some(b)) => v.get(a..b).e_str("Slice our of range")?,
+        (Some(a), _) => v.get(a..).e_str("Slice our of range")?,
+        _ => return e_str("Slice requires List Num Num?"),
     };
     let v: Vec<TData> = s.iter().map(|d| (*d).clone()).collect();
     b_ok(TData::List(v))
@@ -94,10 +94,11 @@ fn build_comparator<'a>(args: &[TBoco<'a>]) -> anyhow::Result<Vec<Comparator>> {
             comps.push(
                 Compare
                     .parse_s(s)
-                    .map_err(|_| ea_str("Not a comparator string"))?,
+                    .map_err(|e| e.strung())
+                    .e_str("Not a comparator string")?,
             );
         } else {
-            return Err(ea_str("Sort On must have strings for idents"));
+            return e_str("Sort On must have strings for idents");
         }
     }
     Ok(comps)
@@ -119,9 +120,7 @@ parser! {(Compare->Comparator)
 
 pub fn sort_on<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     if args.len() < 2 {
-        return Err(ea_str(
-            "Sort requires a List<Map> and then at least one string",
-        ));
+        return e_str("Sort requires a List<Map> and then at least one string");
     }
     // build comparisons
     let comps = build_comparator(&args[1..])?;
@@ -130,21 +129,17 @@ pub fn sort_on<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
         l.sort_by(|a, b| compare(&comps, a, b));
         b_ok(TData::List(l))
     } else {
-        Err(ea_str(
-            "Sort requires a List<Map> and then at least one string",
-        ))
+        e_str("Sort requires a List<Map> and then at least one string")
     }
 }
 
 pub fn bin_search<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     if args.len() < 3 {
-        return Err(ea_str(
-            "Bin Search needs a List<Map> an Item, and at least one sort criteria",
-        ));
+        return e_str("Bin Search needs a List<Map> an Item, and at least one sort criteria");
     }
     let list = match args[0].deref() {
         TData::List(l) => l,
-        _ => return Err(ea_str("First Item must be a list")),
+        _ => return e_str("First Item must be a list"),
     };
     let comps = build_comparator(&args[2..])?;
     Ok(list
@@ -155,13 +150,11 @@ pub fn bin_search<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
 
 pub fn bin_get<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     if args.len() < 3 {
-        return Err(ea_str(
-            "Bin Get needs a List<Map> an Item, and at least one sort criteria",
-        ));
+        return e_str("Bin Get needs a List<Map> an Item, and at least one sort criteria");
     }
     let list = match args[0].deref() {
         TData::List(l) => l,
-        _ => return Err(ea_str("First Item must be a list")),
+        _ => return e_str("First Item must be a list"),
     };
     let comps = build_comparator(&args[2..])?;
     let n = list.binary_search_by(|v| compare(&comps, v.deref(), args[1].deref()));
@@ -173,7 +166,7 @@ pub fn bin_get<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
 
 pub fn get<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     match args.len() {
-        0 | 1 => Err(ea_str("Get requires List and Number")),
+        0 | 1 => e_str("Get requires List and Number"),
         2 => match (args[0].deref(), args[1].deref()) {
             (TData::List(l), TData::UInt(u)) => Ok(l
                 .get(*u)
@@ -184,15 +177,15 @@ pub fn get<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
                 .map(|v| TBoco::Co(v.clone()))
                 .unwrap_or(TBoco::Co(TData::Null))),
             (TData::Map(m), TData::String(s))=> Ok(m.get(s).map(|v| TBoco::Co(v.clone())).unwrap_or(TBoco::Co(TData::Null))),
-            _=>Err(ea_str("get requires either List and Int or Map and String")),
+            _=>e_str("get requires either List and Int or Map and String"),
         },
-        _=>Err(ea_str("Get requires List and exactly 1 Position marker. Multiple markers may be allowed in the future"))
+        _=>e_str("Get requires List and exactly 1 Position marker. Multiple markers may be allowed in the future")
     }
 }
 
 pub fn filter<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     if args.len() < 2 {
-        return Err(ea_str("Filter requires List and PipeString"));
+        return e_str("Filter requires List and PipeString");
     }
     let fm = BasicFuncs::new().with_defaults();
     let pp = Pipe.parse_s(&args[1].to_string()).map_err(|e| e.strung())?;
@@ -210,26 +203,24 @@ pub fn filter<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
                 .collect(),
         ));
     } else {
-        Err(ea_str("Filter requires List and PipeString"))
+        e_str("Filter requires List and PipeString")
     }
 }
 
 pub fn groups<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     let n = args
         .get(0)
-        .ok_or(ea_str("'groups' requires an int and a list"))?
+        .e_str("'groups' requires an int and a list")?
         .as_usize()
-        .ok_or(ea_str("'groups' requires an int and a list"))?;
+        .e_str("'groups' requires an int and a list")?;
     let gsize = match n {
         0 => 1,
         v => v,
     };
-    let l = args
-        .get(1)
-        .ok_or(ea_str("'groups' requires an int and a list"))?;
+    let l = args.get(1).e_str("'groups' requires an int and a list")?;
     let l = match l.deref() {
         TData::List(l) => l,
-        _ => return Err(ea_str("'groups' second arg must be a list")),
+        _ => return e_str("'groups' second arg must be a list"),
     };
     let mut res = Vec::new();
     if l.len() == 0 {

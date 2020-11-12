@@ -1,23 +1,20 @@
 use crate::*;
 use card_format::{CData, Card};
-use err::*;
+use err_tools::*;
 use gobble::traits::*;
 use std::collections::HashMap;
 use std::ops::Deref;
 use td_parser::SData;
 use tparam::*;
 pub fn r_json<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
-    let s = l
-        .iter()
-        .next()
-        .ok_or(ea_str("r_json requires a string argument"))?;
+    let s = l.iter().next().e_str("r_json requires a string argument")?;
     if let TData::String(s) = s.deref() {
         return SData
             .parse_s(s)
             .map(|v| TBoco::Co(v))
             .map_err(|e| e.strung().into());
     }
-    Err(ea_str("r_json requires a single string argument"))
+    e_str("r_json requires a single string argument")
 }
 
 fn card_to_tdata(cd: &Card) -> TData {
@@ -40,14 +37,11 @@ fn cdata_to_tdata(cd: &CData) -> TData {
 }
 
 pub fn r_card<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
-    let s = l
-        .iter()
-        .next()
-        .ok_or(ea_str("r_json requires a string argument"))?;
+    let s = l.iter().next().e_str("r_json requires a string argument")?;
     if let TData::String(s) = s.deref() {
         return card_format::parse_cards(s)
             .map(|cs| TBoco::Co(TData::List(cs.iter().map(card_to_tdata).collect())))
             .map_err(|e| e.into());
     }
-    Err(ea_str("r_json requires a single string argument"))
+    e_str("r_json requires a single string argument")
 }

@@ -27,6 +27,7 @@ pulldown-cmark = "0.7.2"
 chrono = "0.4.15"
 regex = "1.3.9"
 card_format = {path="../../cardmakers/card_format/"}
+err_tools = {path="../err_tools/"}
 rand = "0.7.3"
 base64 = "0.13.0"
 image = "0.23.11"

@@ -1,5 +1,5 @@
 use crate::*;
-use err::*;
+use err_tools::*;
 use func_man::FuncManager;
 use gobble::Parser;
 use parser::TFile;
@@ -187,7 +187,7 @@ impl TreeItem {
                         }
                         Ok(res)
                     }
-                    _ => Err(ea_str("Cannot loop over non map or list")),
+                    _ => e_str("Cannot loop over non map or list"),
                 }
             }
             TreeItem::Block {
@@ -294,7 +294,10 @@ impl TreeTemplate {
 }
 
 /// Handles all openers, but not any of the closers
-pub fn tt_basic<I: Iterator<Item = FlatItem>>(fi: FlatItem, it: &mut I) -> Result<TreeItem, Error> {
+pub fn tt_basic<I: Iterator<Item = FlatItem>>(
+    fi: FlatItem,
+    it: &mut I,
+) -> anyhow::Result<TreeItem> {
     Ok(match fi {
         FlatItem::String(s) => TreeItem::String(s),
         FlatItem::Pipe(p) => TreeItem::Pipe(p),
@@ -322,11 +325,11 @@ pub fn tt_basic<I: Iterator<Item = FlatItem>>(fi: FlatItem, it: &mut I) -> Resul
         }
         FlatItem::Return(p) => TreeItem::Return(p),
         FlatItem::Comment => TreeItem::Comment,
-        e => return Err(Error::String(format!("Unexpected {:?}", e))),
+        e => return e_string(format!("Unexpected {:?}", e)),
     })
 }
 
-pub fn tt_root_block<I: Iterator<Item = FlatItem>>(i: &mut I) -> Result<TreeTemplate, Error> {
+pub fn tt_root_block<I: Iterator<Item = FlatItem>>(i: &mut I) -> anyhow::Result<TreeTemplate> {
     let mut res = Vec::new();
     while let Some(t) = i.next() {
         res.push(tt_basic(t, i)?)
@@ -334,7 +337,7 @@ pub fn tt_root_block<I: Iterator<Item = FlatItem>>(i: &mut I) -> Result<TreeTemp
     Ok(TreeTemplate { v: res })
 }
 
-pub fn tt_name_block<I: Iterator<Item = FlatItem>>(name: &str, i: &mut I) -> Result<Block, Error> {
+pub fn tt_name_block<I: Iterator<Item = FlatItem>>(name: &str, i: &mut I) -> anyhow::Result<Block> {
     let mut res = Vec::new();
     while let Some(t) = i.next() {
         match t {
@@ -350,7 +353,7 @@ pub fn tt_name_block<I: Iterator<Item = FlatItem>>(name: &str, i: &mut I) -> Res
 pub fn tt_if_yes<I: Iterator<Item = FlatItem>>(
     cond: Pipeline,
     it: &mut I,
-) -> Result<TreeItem, Error> {
+) -> anyhow::Result<TreeItem> {
     let mut yes = Vec::new();
     while let Some(t) = it.next() {
         match t {
@@ -379,10 +382,10 @@ pub fn tt_if_yes<I: Iterator<Item = FlatItem>>(
         }
     }
     //Should this fail?
-    Err(Error::Str("Expected '/if' 'else' or 'elif'"))
+    e_str("Expected '/if' 'else' or 'elif'")
 }
 
-pub fn tt_else<I: Iterator<Item = FlatItem>>(it: &mut I) -> Result<Option<Block>, Error> {
+pub fn tt_else<I: Iterator<Item = FlatItem>>(it: &mut I) -> anyhow::Result<Option<Block>> {
     let mut no = Vec::new();
     while let Some(t) = it.next() {
         match t {
@@ -393,7 +396,7 @@ pub fn tt_else<I: Iterator<Item = FlatItem>>(it: &mut I) -> Result<Option<Block>
     Ok(Some(no))
 }
 
-pub fn tt_for<I: Iterator<Item = FlatItem>>(i: &mut I) -> Result<Block, Error> {
+pub fn tt_for<I: Iterator<Item = FlatItem>>(i: &mut I) -> anyhow::Result<Block> {
     let mut block = Vec::new();
     while let Some(t) = i.next() {
         match t {
@@ -405,7 +408,7 @@ pub fn tt_for<I: Iterator<Item = FlatItem>>(i: &mut I) -> Result<Block, Error> {
 }
 
 impl FlatTemplate {
-    pub fn to_tree(self) -> Result<TreeTemplate, Error> {
+    pub fn to_tree(self) -> anyhow::Result<TreeTemplate> {
         tt_root_block(&mut self.v.into_iter())
     }
 }
