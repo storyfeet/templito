@@ -50,8 +50,9 @@ impl PartialEq for TData {
             None => {}
         }
         match (self, other) {
-            (String(a), String(b)) => return a == b,
-            (Date(a), Date(b)) => return a == b,
+            (String(a), String(b)) => a == b,
+            (Bool(a), Bool(b)) => a == b,
+            (Date(a), Date(b)) => a == b,
             (Null, Null) => true,
             _ => false,
         }

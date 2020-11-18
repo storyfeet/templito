@@ -31,4 +31,4 @@ err_tools = {path="../err_tools/"}
 rand = "0.7.3"
 base64 = "0.13.0"
 image = "0.23.11"
-
+imagesize = "0.8.8"

@@ -3,9 +3,9 @@ use crate::*;
 use boco::*;
 use err_tools::*;
 use func_man::*;
-use image::GenericImageView;
 use std::collections::HashMap;
 use std::io::Read;
+use std::io::Write;
 use std::ops::Deref;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
@@ -81,10 +81,10 @@ pub fn file_bytes<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
 
 pub fn file_img_dimensions<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     if let TData::String(d) = args.get(0).e_str("file_img_dimensions needs path")?.deref() {
-        let img = image::open(d.to_string())?;
+        let img = imagesize::size(d.to_string())?;
         let mut map = HashMap::new();
-        map.insert("w".to_string(), TData::UInt(img.width() as usize));
-        map.insert("h".to_string(), TData::UInt(img.height() as usize));
+        map.insert("w".to_string(), TData::UInt(img.width));
+        map.insert("h".to_string(), TData::UInt(img.height));
         return b_ok(TData::Map(map));
     }
     e_str("file_img_dimensions path should be string")
@@ -166,4 +166,24 @@ fn do_scan_dir(
         }
     }
     Ok(())
+}
+
+pub fn write<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+    if args.len() < 2 {
+        return e_str("write requires path and contents");
+    }
+
+    //get safe path
+    let sp = PathBuf::from(&args[0].to_string());
+    //Make directory
+    std::fs::create_dir_all(sp.parent().e_str("No Parent folder")?)?;
+    let mut file = std::fs::OpenOptions::new()
+        .write(true)
+        .create(true)
+        .truncate(true)
+        .open(sp)?;
+
+    write!(file, "{}", args[1].to_string())?;
+
+    b_ok(TData::String(String::new()))
 }

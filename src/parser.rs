@@ -47,19 +47,28 @@ parser! {(Pipe->Pipeline)
 
 parser! {(StringItem->String)
     or!(
-        ("\\",("\t \n\r").plus(),maybe("\\")).map(|_|String::new()),
+        ("\\",WN.plus(),maybe("\\")).map(|_|String::new()),
         ("\\",Any.one()).map(|(_,c)|c.to_string()),
-        string(("{",not("{\\").plus())),
-        not("{\\").plus(),
+        ("{",fail_on("{")).map(|(s,_)|s.to_string()),
+        WN.plus(),
+        not(" \n\t\r{\\").plus(),
     )
 }
 
 parser! {(Assign->(String,Pipeline))
-    (wn_(Ident),wn_("="),wn_(Pipe),ws_((or_ig!(";,\n".one(),peek('}')),WN.star()))).map(|(a,_,v,_)|(a,v))
+    (wn_(Ident),wn_("="),wn_(Pipe),ws_((or_ig!(";,\n".one(),peek(IClose)),WN.star()))).map(|(a,_,v,_)|(a,v))
+}
+
+parser! {(IOpen->())
+    or_ig!(wn_("{{-"),"{{")
+}
+
+parser! {(IClose->())
+    or_ig!(("-}}",WN.star()),"}}")
 }
 
 parser! {(Item->FlatItem)
-    middle("{{",or!(
+    middle(IOpen,or!(
             wn__(Comment).map(|_|FlatItem::Comment),
             wn__(keyword("else")).map(|_|FlatItem::Else),
             wn__(keyword("/if")).map(|_|FlatItem::EndIf),
@@ -77,6 +86,6 @@ parser! {(Item->FlatItem)
             (wn_('@'),Ident," \t\n".istar(),star(wn__(Pipe))).map(|(_,s,_,b)|FlatItem::Block(s,b)),
             (wn_('/'),Ident,WS.star()).map(|(_,n,_)|FlatItem::EndBlock(n)),
             wn__(Pipe).map(|p|FlatItem::Pipe(p)),
-    ).brk(),wn_("}}").brk())
-        .or(strings_plus_until(StringItem,peek(or_ig!("{{",eoi))).map(|(s,_)|FlatItem::String(s)))
+    ).brk(),wn_(IClose).brk())
+        .or(strings_plus_until(StringItem,peek(or_ig!(IOpen,eoi))).map(|(s,_)|FlatItem::String(s)))
 }

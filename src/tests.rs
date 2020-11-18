@@ -215,3 +215,17 @@ fn filter() {
     let res = tt.run(&[], &mut NoTemplates, &fm).unwrap();
     assert_eq!(res, "dave=5,matt=16,dave=100,matt=12,");
 }
+
+#[test]
+fn can_handle_gaps() {
+    let fm = func_man::default_func_man();
+    let tt = TreeTemplate::from_str(
+        r#"{{let a = 3 -}}
+            I say a ="
+        {{- $a -}}
+            ""#,
+    )
+    .unwrap();
+    let res = tt.run(&[], &mut NoTemplates, &fm).unwrap();
+    assert_eq!(res, r#"I say a ="3""#);
+}

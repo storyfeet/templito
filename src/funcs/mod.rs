@@ -88,6 +88,7 @@ pub trait WithFuncs: Sized {
             .with_fn("html_esc", strings::html_esc)
             .with_fn("regex", strings::regex)
             .with_fn("word_wrap", strings::word_wrap)
+            .with_fn("debug", strings::debug)
     }
 
     fn with_math(self) -> Self {
@@ -110,6 +111,7 @@ pub trait WithFuncs: Sized {
             .with_fn("nand", bools::nand)
             .with_fn("or", bools::or)
             .with_fn("nor", bools::nor)
+            .with_fn("type_of", bools::type_of)
     }
 
     fn with_path(self) -> Self {
@@ -145,6 +147,7 @@ pub trait WithFuncs: Sized {
             .with_fn("is_dir", free_file::is_dir)
             .with_fn("scan_dir", free_file::scan_dir)
             .with_fn("file_img_dimensions", free_file::file_img_dimensions)
+            .with_fn("write", free_file::write)
     }
 
     fn with_exec(self) -> Self {

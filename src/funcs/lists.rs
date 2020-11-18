@@ -29,17 +29,27 @@ pub fn len<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
 }
 
 pub fn slice<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
-    let v = match args[0].deref() {
-        TData::List(l) => l,
-        _ => return e_str("Slice requires List Num Num?"),
-    };
+    let start = args
+        .get(1)
+        .and_then(|v| v.deref().as_usize())
+        .e_str("slice: no start point?")?;
 
-    let s = match (
-        args.get(1).and_then(|v| v.deref().as_usize()),
-        args.get(2).and_then(|v| v.deref().as_usize()),
-    ) {
-        (Some(a), Some(b)) => v.get(a..b).e_str("Slice our of range")?,
-        (Some(a), _) => v.get(a..).e_str("Slice our of range")?,
+    let end = args.get(2).and_then(|v| v.deref().as_usize());
+
+    let s = match (args[0].deref(), end) {
+        (TData::List(l), Some(e)) => l.get(start..e).e_str("slice out of range")?,
+        (TData::List(l), None) => l.get(start..).e_str("slice out of range")?,
+
+        (TData::String(s), Some(e)) => {
+            return b_ok(TData::String(
+                s.get(start..e).e_str("slice out of range")?.to_string(),
+            ))
+        }
+        (TData::String(s), None) => {
+            return b_ok(TData::String(
+                s.get(start..).e_str("slice out of range")?.to_string(),
+            ))
+        }
         _ => return e_str("Slice requires List Num Num?"),
     };
     let v: Vec<TData> = s.iter().map(|d| (*d).clone()).collect();
@@ -165,17 +175,24 @@ pub fn bin_get<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
 }
 
 pub fn get<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+    let pos = match args[1].deref() {
+        TData::Int(i) => TData::UInt(*i as usize),
+        v => v.clone(),
+    };
     match args.len() {
         0 | 1 => e_str("Get requires List and Number"),
-        2 => match (args[0].deref(), args[1].deref()) {
+        2 => match (args[0].deref(), &pos) {
             (TData::List(l), TData::UInt(u)) => Ok(l
                 .get(*u)
                 .map(|v| TBoco::Co(v.clone()))
                 .unwrap_or(TBoco::Co(TData::Null))),
-            (TData::List(l), TData::Int(i)) => Ok(l
-                .get(*i as usize)
-                .map(|v| TBoco::Co(v.clone()))
-                .unwrap_or(TBoco::Co(TData::Null))),
+            (TData::String(s),TData::UInt(u))=>{
+                
+                let c = s.get(*u..).and_then(|s| s.chars().next()).e_str("No char at that point")?;
+                let mut s2 = String::new();
+                s2.push(c);
+                b_ok(TData::String(s2))
+            }
             (TData::Map(m), TData::String(s))=> Ok(m.get(s).map(|v| TBoco::Co(v.clone())).unwrap_or(TBoco::Co(TData::Null))),
             _=>e_str("get requires either List and Int or Map and String"),
         },

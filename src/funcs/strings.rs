@@ -159,3 +159,10 @@ pub fn word_wrap<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
         w.into_iter().map(|s| TData::String(s)).collect(),
     ));
 }
+
+pub fn debug<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+    for a in l {
+        eprintln!("{}", a);
+    }
+    b_ok(TData::String(String::new()))
+}

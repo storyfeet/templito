@@ -1,7 +1,7 @@
 use crate::*;
 use boco::*;
 use err_tools::*;
-//use std::ops::Deref;
+use std::ops::Deref;
 use tparam::*;
 
 pub fn eq<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
@@ -120,4 +120,32 @@ pub fn nor<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
         }
     }
     b_ok(TData::Bool(true))
+}
+
+fn _type_of(td: &TData) -> &'static str {
+    match td {
+        TData::Bool(_) => "bool",
+        TData::String(_) => "string",
+        TData::Int(_) => "int",
+        TData::UInt(_) => "uint",
+        TData::Float(_) => "float",
+        TData::List(_) => "list",
+        TData::Map(_) => "map",
+        TData::Template(_) => "template",
+        TData::Null => "null",
+        TData::Date(_) => "date",
+        TData::Bytes(_) => "bytes",
+    }
+}
+
+pub fn type_of<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+    let r = _type_of(
+        l.get(0)
+            .e_str("missing params : type_of <item> <?match>")?
+            .deref(),
+    );
+    match l.get(1) {
+        Some(b) => b_ok(TData::Bool(r == b.to_string())),
+        None => b_ok(TData::String(r.to_string())),
+    }
 }
