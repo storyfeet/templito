@@ -60,32 +60,32 @@ parser! {(Assign->(String,Pipeline))
 }
 
 parser! {(IOpen->())
-    or_ig!(wn_("{{-"),"{{")
+    (or_ig!(wn_("{{-"),"{{"),WN.star()).ig()
 }
 
 parser! {(IClose->())
-    or_ig!(("-}}",WN.star()),"}}")
+    wn_(or_ig!(("-}}",WN.star()),"}}"))
 }
 
 parser! {(Item->FlatItem)
     middle(IOpen,or!(
-            wn__(Comment).map(|_|FlatItem::Comment),
-            wn__(keyword("else")).map(|_|FlatItem::Else),
-            wn__(keyword("/if")).map(|_|FlatItem::EndIf),
-            wn__(keyword("/for")).map(|_|FlatItem::EndFor),
-            (wn_(keyword("if")),wn__(Pipe)).map(|(_,p)|FlatItem::If(p)),
-            (wn_(keyword("return")),wn__(Pipe)).map(|(_,p)|FlatItem::Return(p)),
-            (wn_(keyword("elif")),wn__(Pipe)).map(|(_,p)|FlatItem::Elif(p)),
-            (wn_(keyword("for")),wn_(Ident),wn_(Ident),wn_(keyword("in")),wn__(Pipe)).map(|(_,k,v,_,p)| FlatItem::For(k,v,p)),
-            (wn_(keyword("define")),wn__(Ident)).map(|(_,n)|FlatItem::Define(n)),
-            (wn_(keyword("global")),wn__(Ident)).map(|(_,n)|FlatItem::Global(n)),
-            (wn_(keyword("let")),plus(Assign)).map(|(_,v)|FlatItem::Let(v)),
-            (wn_(keyword("export")),plus(Assign)).map(|(_,v)|FlatItem::Export(v)),
-            (wn_(keyword("@let")),wn_(Ident)).map(|(_,n)|FlatItem::AtLet(n)),
-            (wn_(keyword("@export")),wn_(Ident)).map(|(_,n)|FlatItem::AtExport(n)),
-            (wn_('@'),Ident," \t\n".istar(),star(wn__(Pipe))).map(|(_,s,_,b)|FlatItem::Block(s,b)),
-            (wn_('/'),Ident,WS.star()).map(|(_,n,_)|FlatItem::EndBlock(n)),
-            wn__(Pipe).map(|p|FlatItem::Pipe(p)),
+            Comment.map(|_|FlatItem::Comment),
+            keyword("else").map(|_|FlatItem::Else),
+            (keyword("if"),wn__(Pipe)).map(|(_,p)|FlatItem::If(p)),
+            (keyword("return"),wn__(Pipe)).map(|(_,p)|FlatItem::Return(p)),
+            (keyword("elif"),wn__(Pipe)).map(|(_,p)|FlatItem::Elif(p)),
+            (keyword("for"),wn_(Ident),wn_(Ident),wn_(keyword("in")),wn__(Pipe)).map(|(_,k,v,_,p)| FlatItem::For(k,v,p)),
+            (keyword("switch"),star(wn__(Pipe))).map(|(_,v)| FlatItem::Switch(v)),
+            (keyword("case"),star(wn__(Pipe))).map(|(_,v)| FlatItem::Case(v)),
+            (keyword("define"),wn__(Ident)).map(|(_,n)|FlatItem::Define(n)),
+            (keyword("global"),wn__(Ident)).map(|(_,n)|FlatItem::Global(n)),
+            (keyword("let"),plus(Assign)).map(|(_,v)|FlatItem::Let(v)),
+            (keyword("export"),plus(Assign)).map(|(_,v)|FlatItem::Export(v)),
+            (keyword("@let"),wn_(Ident)).map(|(_,n)|FlatItem::AtLet(n)),
+            (keyword("@export"),wn_(Ident)).map(|(_,n)|FlatItem::AtExport(n)),
+            ('@',Ident," \t\n".istar(),star(wn__(Pipe))).map(|(_,s,_,b)|FlatItem::Block(s,b)),
+            ('/',Ident,WS.star()).map(|(_,n,_)|FlatItem::EndBlock(n)),
+            Pipe.map(|p|FlatItem::Pipe(p)),
     ).brk(),wn_(IClose).brk())
         .or(strings_plus_until(StringItem,peek(or_ig!(IOpen,eoi))).map(|(s,_)|FlatItem::String(s)))
 }

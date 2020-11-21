@@ -7,12 +7,19 @@ use pipeline::*;
 use scope::Scope;
 use std::collections::HashMap;
 use std::io::Read;
+use std::ops::Deref;
 use std::path::Path;
 use std::str::FromStr;
 use temp_man::{NoTemplates, TempManager};
 use tparam::*;
 
 pub type Block = Vec<TreeItem>;
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Case {
+    params: Vec<Pipeline>,
+    block: Block,
+}
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum TreeItem {
@@ -42,6 +49,7 @@ pub enum TreeItem {
     AtLet(String, Block),
     AtExport(String, Block),
     Return(Pipeline),
+    Switch(Vec<Pipeline>, Vec<Case>),
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -67,8 +75,8 @@ pub enum FlatItem {
     Block(String, Vec<Pipeline>),
     EndBlock(String),
     Return(Pipeline),
-    EndIf,
-    EndFor,
+    Switch(Vec<Pipeline>),
+    Case(Vec<Pipeline>),
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -230,6 +238,29 @@ impl TreeItem {
                 tm.insert_t(name.to_string(), TreeTemplate { v: block.clone() });
                 Ok(String::new())
             }
+            TreeItem::Switch(params, cases) => {
+                let mut s_params = Vec::new();
+                for p in params {
+                    match p.run(&scope, tm, fm) {
+                        Ok(v) => s_params.push(v),
+                        Err(_) => break,
+                    }
+                }
+                'caseloop: for c in cases {
+                    for (n, p) in c.params.iter().enumerate() {
+                        match s_params.get(n) {
+                            Some(b) => {
+                                if b.deref() != p.run(&scope, tm, fm)?.deref() {
+                                    continue 'caseloop;
+                                }
+                            }
+                            None => continue 'caseloop,
+                        }
+                    }
+                    return run_block(&c.block, scope, tm, fm);
+                }
+                return Ok(String::new());
+            }
         }
     }
 }
@@ -325,8 +356,41 @@ pub fn tt_basic<I: Iterator<Item = FlatItem>>(
         }
         FlatItem::Return(p) => TreeItem::Return(p),
         FlatItem::Comment => TreeItem::Comment,
+        FlatItem::Switch(p) => return tt_switch(p, it),
         e => return e_string(format!("Unexpected {:?}", e)),
     })
+}
+pub fn tt_switch<I: Iterator<Item = FlatItem>>(
+    params: Vec<Pipeline>,
+    it: &mut I,
+) -> anyhow::Result<TreeItem> {
+    let mut res = Vec::new();
+    let mut curr = None;
+    while let Some(t) = it.next() {
+        match t {
+            FlatItem::Case(params) => {
+                curr.take().map(|n| res.push(n));
+                curr = Some(Case {
+                    params,
+                    block: Vec::new(),
+                });
+            }
+            FlatItem::String(s) => match curr {
+                Some(ref mut cb) => cb.block.push(TreeItem::String(s)),
+                None => {}
+            },
+            FlatItem::EndBlock(s) if s == "switch" => {
+                curr.take().map(|n| res.push(n));
+                return Ok(TreeItem::Switch(params, res));
+            }
+            v => match curr {
+                Some(ref mut cb) => cb.block.push(tt_basic(v, it)?),
+                None => return e_str("Switch requires cases to add blocks to"),
+            },
+        }
+    }
+    curr.take().map(|n| res.push(n));
+    Ok(TreeItem::Switch(params, res))
 }
 
 pub fn tt_root_block<I: Iterator<Item = FlatItem>>(i: &mut I) -> anyhow::Result<TreeTemplate> {
@@ -371,7 +435,7 @@ pub fn tt_if_yes<I: Iterator<Item = FlatItem>>(
                     no: Some(vec![tt_if_yes(p, it)?]),
                 })
             }
-            FlatItem::EndIf => {
+            FlatItem::EndBlock(v) if v == "if" => {
                 return Ok(TreeItem::If {
                     cond,
                     yes,
@@ -389,7 +453,7 @@ pub fn tt_else<I: Iterator<Item = FlatItem>>(it: &mut I) -> anyhow::Result<Optio
     let mut no = Vec::new();
     while let Some(t) = it.next() {
         match t {
-            FlatItem::EndIf => return Ok(Some(no)),
+            FlatItem::EndBlock(v) if v == "if" => return Ok(Some(no)),
             other => no.push(tt_basic(other, it)?),
         }
     }
@@ -400,7 +464,7 @@ pub fn tt_for<I: Iterator<Item = FlatItem>>(i: &mut I) -> anyhow::Result<Block> 
     let mut block = Vec::new();
     while let Some(t) = i.next() {
         match t {
-            FlatItem::EndFor => return Ok(block),
+            FlatItem::EndBlock(v) if v == "for" => return Ok(block),
             other => block.push(tt_basic(other, i)?),
         }
     }

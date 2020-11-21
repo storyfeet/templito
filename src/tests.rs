@@ -229,3 +229,27 @@ fn can_handle_gaps() {
     let res = tt.run(&[], &mut NoTemplates, &fm).unwrap();
     assert_eq!(res, r#"I say a ="3""#);
 }
+
+#[test]
+fn switch_can() {
+    let fm = func_man::default_func_man();
+    let tt = TreeTemplate::from_str(
+        r#"
+        {{- switch $0 $1}}
+        {{- case 3 2 -}}
+            It's 3 and 2
+        {{- case 5 -}}            
+            Something Something 5 Something
+        {{- case -}}
+            Default case
+        {{- /switch -}}
+            "#,
+    )
+    .unwrap();
+    let res = tt.run(&[&3, &2], &mut NoTemplates, &fm).unwrap();
+    assert_eq!(res, r#"It's 3 and 2"#);
+    let res = tt.run(&[&5], &mut NoTemplates, &fm).unwrap();
+    assert_eq!(res, r#"Something Something 5 Something"#);
+    let res = tt.run(&[], &mut NoTemplates, &fm).unwrap();
+    assert_eq!(res, r#"Default case"#);
+}
