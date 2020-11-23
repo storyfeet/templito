@@ -20,7 +20,7 @@ pub enum Pattern {
 parser! {(Pat ->Pattern)
     or!(
         keyword("_").asv(Pattern::Any),
-        ("[",star(wn__(Pat)),"]").map(|(_,v,_)|Pattern::List(v)),
+        ("[",sep_until_ig(wn__(Pat),maybe(","),"]")).map(|(_,v)|Pattern::List(v)),
         ("?(",Pipe,")").map(|(_,v,_)|Pattern::Filter(v)),
         ("<",wn__(Ident),maybe(":".ig_then(Pat)),">").map(|(_,i,op,_)|Pattern::Capture(i,op.map(|p|Box::new(p)))),
 

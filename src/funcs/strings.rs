@@ -133,17 +133,33 @@ fn _word_wrap(s: &str, len: usize) -> Vec<String> {
             _ => {}
         }
         if count >= len {
-            if let Some(b) = brk {
-                res.push(s[index..b].trim().to_string());
-                index = b;
-                count = 0;
-                brk = None;
+            match brk {
+                Some(b) => {
+                    res.push(s[index..b].trim().to_string());
+                    index = b;
+                    count = 0;
+                    brk = None;
+                }
+                None => {
+                    res.push(s[index..k].trim().to_string());
+                    index = k;
+                    count = 0;
+                    brk = None;
+                }
             }
         }
     }
-    if count > 0 {
+    if index < s.len() {
         res.push(s[index..].trim().to_string());
     }
+    //Assert the wrap has all the chars
+    let mut s_join = String::new();
+    for s in res.iter() {
+        s_join.push_str(s);
+    }
+    let s_no_line = s.replace(|c| "\n\t \r".contains(c), "");
+    s_join = s_join.replace(|c| "\n\t \r".contains(c), "");
+    assert_eq!(s_join, s_no_line, "Word wrap failure");
     res
 }
 

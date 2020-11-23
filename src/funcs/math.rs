@@ -1,5 +1,7 @@
 use crate::*;
+use boco::*;
 use err_tools::*;
+use std::ops::Deref;
 use tdata::*;
 use tparam::*;
 
@@ -46,6 +48,14 @@ pub fn add<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
 }
 
 pub fn sub<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+    if l.len() == 1 {
+        match l[0].deref() {
+            TData::UInt(n) => return b_ok(TData::Int(-(*n as isize))),
+            TData::Float(f) => return b_ok(TData::Float(-*f)),
+            TData::Int(n) => return b_ok(TData::Int(-*n)),
+            _ => return e_str("sub onl works on numbers"),
+        }
+    }
     fold(l, |a, b| match num_match(&a, b) {
         Some(U(a, b)) => {
             if a >= b {
