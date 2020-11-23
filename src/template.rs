@@ -7,7 +7,6 @@ use pipeline::*;
 use scope::Scope;
 use std::collections::HashMap;
 use std::io::Read;
-use std::ops::Deref;
 use std::path::Path;
 use std::str::FromStr;
 use temp_man::{NoTemplates, TempManager};
@@ -17,7 +16,7 @@ pub type Block = Vec<TreeItem>;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Case {
-    params: Vec<Pipeline>,
+    pats: Vec<pattern::Pattern>,
     block: Block,
 }
 
@@ -76,7 +75,7 @@ pub enum FlatItem {
     EndBlock(String),
     Return(Pipeline),
     Switch(Vec<Pipeline>),
-    Case(Vec<Pipeline>),
+    Case(Vec<pattern::Pattern>),
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -241,23 +240,30 @@ impl TreeItem {
             TreeItem::Switch(params, cases) => {
                 let mut s_params = Vec::new();
                 for p in params {
-                    match p.run(&scope, tm, fm) {
-                        Ok(v) => s_params.push(v),
+                    match p.run(scope, tm, fm) {
+                        Ok(v) => s_params.push(v.concrete()),
                         Err(_) => break,
                     }
                 }
                 'caseloop: for c in cases {
-                    for (n, p) in c.params.iter().enumerate() {
+                    scope.push();
+                    for (n, p) in c.pats.iter().enumerate() {
                         match s_params.get(n) {
                             Some(b) => {
-                                if b.deref() != p.run(&scope, tm, fm)?.deref() {
+                                if !p.match_data(b, scope, tm, fm) {
+                                    scope.pop();
                                     continue 'caseloop;
                                 }
                             }
-                            None => continue 'caseloop,
+                            None => {
+                                scope.pop();
+                                continue 'caseloop;
+                            }
                         }
                     }
-                    return run_block(&c.block, scope, tm, fm);
+                    let r = run_block(&c.block, scope, tm, fm);
+                    scope.pop();
+                    return r;
                 }
                 return Ok(String::new());
             }
@@ -368,10 +374,10 @@ pub fn tt_switch<I: Iterator<Item = FlatItem>>(
     let mut curr = None;
     while let Some(t) = it.next() {
         match t {
-            FlatItem::Case(params) => {
+            FlatItem::Case(pats) => {
                 curr.take().map(|n| res.push(n));
                 curr = Some(Case {
-                    params,
+                    pats,
                     block: Vec::new(),
                 });
             }

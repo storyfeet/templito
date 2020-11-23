@@ -253,3 +253,27 @@ fn switch_can() {
     let res = tt.run(&[], &mut NoTemplates, &fm).unwrap();
     assert_eq!(res, r#"Default case"#);
 }
+
+#[test]
+fn switch_pattern() {
+    let fm = func_man::default_func_man();
+    let tt = TreeTemplate::from_str(
+        r#"
+        {{- switch $0 $1}}
+        {{- case <x:?(lt @ 4)> 2 -}}
+            It's {{$x}} and 2
+        {{- case ?(eq @ 5) -}}            
+            Something Something 5 Something
+        {{- case -}}
+            Default case
+        {{- /switch -}}
+            "#,
+    )
+    .unwrap();
+    let res = tt.run(&[&3, &2], &mut NoTemplates, &fm).unwrap();
+    assert_eq!(res, r#"It's 3 and 2"#);
+    let res = tt.run(&[&5], &mut NoTemplates, &fm).unwrap();
+    assert_eq!(res, r#"Something Something 5 Something"#);
+    let res = tt.run(&[], &mut NoTemplates, &fm).unwrap();
+    assert_eq!(res, r#"Default case"#);
+}

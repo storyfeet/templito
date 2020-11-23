@@ -1,3 +1,4 @@
+use crate::boco::Boco;
 use crate::func_man::FuncManager;
 use crate::parser::{wn__, Ident, Pipe};
 use crate::pipeline::Pipeline;
@@ -6,7 +7,6 @@ use crate::td_parser::*;
 use crate::tdata::*;
 use crate::temp_man::TempManager;
 use gobble::*;
-use std::ops::Deref;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Pattern {
@@ -68,10 +68,11 @@ impl Pattern {
             Pattern::Filter(f) => {
                 scope.push();
                 scope.set("@".to_string(), d.clone());
-                let res = f.run(scope, tm, fm);
+                let res = f.run(scope, tm, fm).map(Boco::concrete);
                 scope.pop();
-                match res{
-                    //TODO
+                match res {
+                    Ok(TData::Bool(true)) => true,
+                    _ => false,
                 }
             }
         }

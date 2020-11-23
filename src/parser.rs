@@ -1,3 +1,4 @@
+use crate::pattern;
 use crate::pipeline::Pipeline;
 use crate::template::*;
 use gobble::*;
@@ -76,7 +77,7 @@ parser! {(Item->FlatItem)
             (keyword("elif"),wn__(Pipe)).map(|(_,p)|FlatItem::Elif(p)),
             (keyword("for"),wn_(Ident),wn_(Ident),wn_(keyword("in")),wn__(Pipe)).map(|(_,k,v,_,p)| FlatItem::For(k,v,p)),
             (keyword("switch"),star(wn__(Pipe))).map(|(_,v)| FlatItem::Switch(v)),
-            (keyword("case"),star(wn__(Pipe))).map(|(_,v)| FlatItem::Case(v)),
+            (keyword("case"),star(wn__(pattern::Pat))).map(|(_,v)| FlatItem::Case(v)),
             (keyword("define"),wn__(Ident)).map(|(_,n)|FlatItem::Define(n)),
             (keyword("global"),wn__(Ident)).map(|(_,n)|FlatItem::Global(n)),
             (keyword("let"),plus(Assign)).map(|(_,v)|FlatItem::Let(v)),
