@@ -96,3 +96,4 @@ pub mod prelude;
 pub use funcs::WithFuncs;
 pub use tdata::TData;
 pub use tparam::TParam;
+mod pattern;
