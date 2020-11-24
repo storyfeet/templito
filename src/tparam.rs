@@ -4,6 +4,7 @@ use std::ops::*;
 use tdata::*;
 
 use boco::*;
+use expr::VarPart;
 
 pub type TBop<'a> = Bop<'a, TData>;
 pub type TBoco<'a> = Boco<'a, TData>;

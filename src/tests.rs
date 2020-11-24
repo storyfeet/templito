@@ -1,7 +1,7 @@
 #![cfg(test)]
 
 use crate::*;
-use pipeline::*;
+use expr::*;
 use serde_json::Value;
 use std::str::FromStr;
 use temp_man::*;
@@ -16,7 +16,7 @@ fn can_parse_simple_template() {
         FlatTemplate {
             v: vec![FlatItem::Let(vec![(
                 "x".to_string(),
-                Pipeline::Lit(TData::UInt(3))
+                Expr::Lit(TData::UInt(3))
             )])]
         }
     );

@@ -7,8 +7,8 @@ use gobble::*;
 use std::cmp::Ordering;
 use std::ops::Deref;
 use tdata::*;
-use parse::template::*;
-use template::VarPart;
+use parse::expr::*;
+use expr::VarPart;
 use tparam::*;
 
 pub fn list<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
@@ -205,7 +205,7 @@ pub fn filter<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
         return e_str("Filter requires List and PipeString");
     }
     let fm = BasicFuncs::new().with_defaults();
-    let pp = Pipe.parse_s(&args[1].to_string()).map_err(|e| e.strung())?;
+    let pp = Exp.parse_s(&args[1].to_string()).map_err(|e| e.strung())?;
     if let TData::List(ls) = args[0].deref() {
         return b_ok(TData::List(
             ls.iter()

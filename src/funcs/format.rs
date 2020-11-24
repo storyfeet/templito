@@ -2,14 +2,14 @@ use crate::*;
 use card_format::{CData, Card};
 use err_tools::*;
 use gobble::traits::*;
-use parse::tdata::SData;
+use parse::expr::BasicData;
 use std::collections::HashMap;
 use std::ops::Deref;
 use tparam::*;
 pub fn r_json<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     let s = l.iter().next().e_str("r_json requires a string argument")?;
     if let TData::String(s) = s.deref() {
-        return SData
+        return BasicData
             .parse_s(s)
             .map(|v| TBoco::Co(v))
             .map_err(|e| e.strung().into());

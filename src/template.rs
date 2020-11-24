@@ -1,9 +1,9 @@
 use crate::*;
 use err_tools::*;
+use expr::Expr;
 use func_man::FuncManager;
 use gobble::Parser;
 use parse::template::TFile;
-use pipeline::*;
 use scope::Scope;
 use std::collections::HashMap;
 use std::io::Read;
@@ -16,7 +16,7 @@ pub type Block = Vec<TreeItem>;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Case {
-    pats: Vec<expr::Pattern>,
+    pats: Vec<pattern::Pattern>,
     block: Block,
 }
 
@@ -24,31 +24,31 @@ pub struct Case {
 pub enum TreeItem {
     String(String),
     Comment,
-    Pipe(Pipeline),
+    Exp(Expr),
     Block {
         command: String,
-        params: Vec<Pipeline>,
+        params: Vec<Expr>,
         block: Block,
     },
     If {
-        cond: Pipeline,
+        cond: Expr,
         yes: Block,
         no: Option<Block>,
     },
     For {
         k: String,
         v: String,
-        p: Pipeline,
+        p: Expr,
         b: Block,
     },
     Define(String, Block),
     Global(String, Block),
-    Let(Vec<(String, Pipeline)>),
-    Export(Vec<(String, Pipeline)>),
+    Let(Vec<(String, Expr)>),
+    Export(Vec<(String, Expr)>),
     AtLet(String, Block),
     AtExport(String, Block),
-    Return(Pipeline),
-    Switch(Vec<Pipeline>, Vec<Case>),
+    Return(Expr),
+    Switch(Vec<Expr>, Vec<Case>),
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -60,36 +60,22 @@ pub struct TreeTemplate {
 pub enum FlatItem {
     String(String),
     Comment,
-    Pipe(Pipeline),
-    If(Pipeline),
+    Exp(Expr),
+    If(Expr),
     Else,
-    Elif(Pipeline),
-    For(String, String, Pipeline),
+    Elif(Expr),
+    For(String, String, Expr),
     AtLet(String),
     AtExport(String),
     Define(String),
     Global(String),
-    Let(Vec<(String, Pipeline)>),
-    Export(Vec<(String, Pipeline)>),
-    Block(String, Vec<Pipeline>),
+    Let(Vec<(String, Expr)>),
+    Export(Vec<(String, Expr)>),
+    Block(String, Vec<Expr>),
     EndBlock(String),
-    Return(Pipeline),
-    Switch(Vec<Pipeline>),
-    Case(Vec<expr::Pattern>),
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum VarPart {
-    Num(usize),
-    Id(String),
-}
-impl VarPart {
-    pub fn as_str(&self) -> Option<&str> {
-        match self {
-            VarPart::Num(_) => None,
-            VarPart::Id(s) => Some(s),
-        }
-    }
+    Return(Expr),
+    Switch(Vec<Expr>),
+    Case(Vec<pattern::Pattern>),
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -141,7 +127,7 @@ impl TreeItem {
                 scope.set_root("return".to_string(), psolid);
                 Ok(String::new())
             }
-            TreeItem::Pipe(p) => {
+            TreeItem::Exp(p) => {
                 let pres = &p.run(&scope, tm, fm)?;
                 Ok(pres.to_string())
             }
@@ -204,7 +190,7 @@ impl TreeItem {
             } => {
                 let ch = run_block(block, scope, tm, fm)?;
                 if params.len() == 0 {
-                    return Ok(pipeline::run_values::<TM, FM>(
+                    return Ok(expr::run_values::<TM, FM>(
                         command,
                         &vec![TBoco::Co(TData::String(ch))],
                         tm,
@@ -217,7 +203,7 @@ impl TreeItem {
                 for p in params {
                     v.push(p.run(scope, tm, fm)?);
                 }
-                Ok(pipeline::run_values::<TM, FM>(command, &v, tm, fm)?.to_string())
+                Ok(expr::run_values::<TM, FM>(command, &v, tm, fm)?.to_string())
             }
             TreeItem::AtLet(name, block) => {
                 let ch = run_block(block, scope, tm, fm)?;
@@ -337,7 +323,7 @@ pub fn tt_basic<I: Iterator<Item = FlatItem>>(
 ) -> anyhow::Result<TreeItem> {
     Ok(match fi {
         FlatItem::String(s) => TreeItem::String(s),
-        FlatItem::Pipe(p) => TreeItem::Pipe(p),
+        FlatItem::Exp(p) => TreeItem::Exp(p),
         FlatItem::Let(v) => TreeItem::Let(v),
         FlatItem::AtLet(v) => TreeItem::AtLet(v, tt_name_block("let", it)?),
         FlatItem::Export(v) => TreeItem::Export(v),
@@ -367,7 +353,7 @@ pub fn tt_basic<I: Iterator<Item = FlatItem>>(
     })
 }
 pub fn tt_switch<I: Iterator<Item = FlatItem>>(
-    params: Vec<Pipeline>,
+    params: Vec<Expr>,
     it: &mut I,
 ) -> anyhow::Result<TreeItem> {
     let mut res = Vec::new();
@@ -420,10 +406,7 @@ pub fn tt_name_block<I: Iterator<Item = FlatItem>>(name: &str, i: &mut I) -> any
     //Err(Error::String(format!("{} block not ended", name)))
 }
 
-pub fn tt_if_yes<I: Iterator<Item = FlatItem>>(
-    cond: Pipeline,
-    it: &mut I,
-) -> anyhow::Result<TreeItem> {
+pub fn tt_if_yes<I: Iterator<Item = FlatItem>>(cond: Expr, it: &mut I) -> anyhow::Result<TreeItem> {
     let mut yes = Vec::new();
     while let Some(t) = it.next() {
         match t {

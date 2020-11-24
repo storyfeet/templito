@@ -1,6 +1,6 @@
 use crate::*;
+use expr::VarPart;
 use std::collections::HashMap;
-use template::VarPart;
 use tparam::*;
 
 #[derive(Debug)]

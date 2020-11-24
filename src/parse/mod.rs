@@ -1,5 +1,5 @@
 pub mod expr;
-pub mod tdata;
+pub mod pattern;
 pub mod template;
 
 use gobble::*;
@@ -11,4 +11,9 @@ pub fn wn_<P: Parser>(p: P) -> impl Parser<Out = P::Out> {
 }
 pub fn wn__<P: Parser>(p: P) -> impl Parser<Out = P::Out> {
     middle(WN.star(), p, WN.star())
+}
+parser! { (Ident->String)
+    or! (common::Ident,
+        middle('\'',not('\'').plus(),'\'')
+    )
 }
