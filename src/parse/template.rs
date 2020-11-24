@@ -1,16 +1,7 @@
-use crate::pattern;
+use super::*;
 use crate::pipeline::Pipeline;
 use crate::template::*;
 use gobble::*;
-
-char_bool!(WN, " \t\n\r");
-
-pub fn wn_<P: Parser>(p: P) -> impl Parser<Out = P::Out> {
-    last(WN.star(), p)
-}
-pub fn wn__<P: Parser>(p: P) -> impl Parser<Out = P::Out> {
-    middle(WN.star(), p, WN.star())
-}
 
 parser! { (Ident->String)
     or! (common::Ident,
@@ -41,7 +32,7 @@ parser! {(Pipe->Pipeline)
             Pipeline::Var(r)
         }),
         ('@').map(|_| Pipeline::Var(vec![VarPart::Id("@".to_string())])),
-        crate::td_parser::Data.map(|d| Pipeline::Lit(d)),
+        tdata::Data.map(|d| Pipeline::Lit(d)),
         (Ident,star(wn__(Pipe))).map(|(c,v)|Pipeline::Command(c,v)),
     )
 }
@@ -77,7 +68,7 @@ parser! {(Item->FlatItem)
             (keyword("elif"),wn__(Pipe)).map(|(_,p)|FlatItem::Elif(p)),
             (keyword("for"),wn_(Ident),wn_(Ident),wn_(keyword("in")),wn__(Pipe)).map(|(_,k,v,_,p)| FlatItem::For(k,v,p)),
             (keyword("switch"),star(wn__(Pipe))).map(|(_,v)| FlatItem::Switch(v)),
-            (keyword("case"),star(wn__(pattern::Pat))).map(|(_,v)| FlatItem::Case(v)),
+            (keyword("case"),star(wn__(expr::Pat))).map(|(_,v)| FlatItem::Case(v)),
             (keyword("define"),wn__(Ident)).map(|(_,n)|FlatItem::Define(n)),
             (keyword("global"),wn__(Ident)).map(|(_,n)|FlatItem::Global(n)),
             (keyword("let"),plus(Assign)).map(|(_,v)|FlatItem::Let(v)),

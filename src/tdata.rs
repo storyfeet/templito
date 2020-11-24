@@ -115,7 +115,7 @@ impl From<&[String]> for TData {
 impl TData {
     ///How the type will be created from the template
     pub fn from_str(s: &str) -> anyhow::Result<Self> {
-        crate::td_parser::Data
+        crate::parse::tdata::Data
             .parse_s(s)
             .map_err(|e| e.strung().into())
     }

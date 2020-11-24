@@ -82,10 +82,9 @@
 pub mod boco;
 pub mod func_man;
 pub mod funcs;
-mod parser;
+pub mod parse;
 mod pipeline;
 mod scope;
-pub mod td_parser;
 pub mod tdata;
 pub mod temp_man;
 pub mod template;
@@ -96,4 +95,4 @@ pub mod prelude;
 pub use funcs::WithFuncs;
 pub use tdata::TData;
 pub use tparam::TParam;
-mod pattern;
+mod expr;

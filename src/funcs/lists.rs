@@ -4,10 +4,10 @@ use crate::temp_man::NoTemplates;
 use boco::*;
 use err_tools::*;
 use gobble::*;
-use parser::*;
 use std::cmp::Ordering;
 use std::ops::Deref;
 use tdata::*;
+use parse::template::*;
 use template::VarPart;
 use tparam::*;
 

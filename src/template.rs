@@ -2,7 +2,7 @@ use crate::*;
 use err_tools::*;
 use func_man::FuncManager;
 use gobble::Parser;
-use parser::TFile;
+use parse::template::TFile;
 use pipeline::*;
 use scope::Scope;
 use std::collections::HashMap;
@@ -16,7 +16,7 @@ pub type Block = Vec<TreeItem>;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Case {
-    pats: Vec<pattern::Pattern>,
+    pats: Vec<expr::Pattern>,
     block: Block,
 }
 
@@ -75,7 +75,7 @@ pub enum FlatItem {
     EndBlock(String),
     Return(Pipeline),
     Switch(Vec<Pipeline>),
-    Case(Vec<pattern::Pattern>),
+    Case(Vec<expr::Pattern>),
 }
 
 #[derive(Clone, Debug, PartialEq)]

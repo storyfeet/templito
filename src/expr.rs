@@ -1,12 +1,9 @@
 use crate::boco::Boco;
 use crate::func_man::FuncManager;
-use crate::parser::{wn__, Ident, Pipe};
 use crate::pipeline::Pipeline;
 use crate::scope::Scope;
-use crate::td_parser::*;
 use crate::tdata::*;
 use crate::temp_man::TempManager;
-use gobble::*;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Pattern {
@@ -15,17 +12,6 @@ pub enum Pattern {
     Filter(Pipeline),
     Capture(String, Option<Box<Pattern>>),
     Any,
-}
-
-parser! {(Pat ->Pattern)
-    or!(
-        keyword("_").asv(Pattern::Any),
-        ("[",sep_until_ig(wn__(Pat),maybe(","),"]")).map(|(_,v)|Pattern::List(v)),
-        ("?(",Pipe,")").map(|(_,v,_)|Pattern::Filter(v)),
-        ("<",wn__(Ident),maybe(":".ig_then(Pat)),">").map(|(_,i,op,_)|Pattern::Capture(i,op.map(|p|Box::new(p)))),
-
-        Data.map(|v|Pattern::Val(v)),
-    )
 }
 
 impl Pattern {
@@ -77,4 +63,11 @@ impl Pattern {
             }
         }
     }
+}
+
+pub enum Expr {
+    Lit(TData),
+    Pipe(Pipeline),
+    List(Vec<Expr>),
+    Map(Vec<(String, Expr)>),
 }

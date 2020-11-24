@@ -2,9 +2,9 @@ use crate::*;
 use card_format::{CData, Card};
 use err_tools::*;
 use gobble::traits::*;
+use parse::tdata::SData;
 use std::collections::HashMap;
 use std::ops::Deref;
-use td_parser::SData;
 use tparam::*;
 pub fn r_json<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     let s = l.iter().next().e_str("r_json requires a string argument")?;
