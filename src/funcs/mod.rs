@@ -36,6 +36,7 @@ pub trait WithFuncs: Sized {
             .with_format()
             .with_rand()
             .with_bytes()
+            .with_svg()
     }
 
     fn with_bytes(self) -> Self {
@@ -97,6 +98,8 @@ pub trait WithFuncs: Sized {
             .with_fn("mul", math::mul)
             .with_fn("div", math::div)
             .with_fn("mod", math::modulo)
+            .with_fn("min", math::min)
+            .with_fn("max", math::max)
     }
 
     fn with_bools(self) -> Self {

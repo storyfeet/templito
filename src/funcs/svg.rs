@@ -25,7 +25,7 @@ pub fn xywh<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     let y = args.get(1).e_str("need y")?;
     let x = args.get(0).e_str("need x")?;
     b_ok(TData::String(format!(
-        r#"x="{}{4}" y="{}{4}" w="{}{4}" h={}{4}"#,
+        r#"x="{}{4}" y="{}{4}" width="{}{4}" height="{}{4}""#,
         x, y, w, h, u
     )))
 }

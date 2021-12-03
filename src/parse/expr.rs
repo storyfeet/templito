@@ -125,5 +125,5 @@ parser! {
 
 parser! {
     (MapItem->(String,Expr))
-    (wn__(TString),":", Exp).map(|(a, _, b)| (a, b))
+    (wn__(or!(Ident,TString)),":", Exp).map(|(a, _, b)| (a, b))
 }

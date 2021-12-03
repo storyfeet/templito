@@ -96,3 +96,20 @@ pub fn modulo<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
         _ => e_str("Cannot add non numeric values"),
     })
 }
+
+pub fn min<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+    fold(l, |a, b| match num_match(&a, b) {
+        Some(U(a, b)) => Ok(TBoco::Co(TData::UInt(a.min(b)))),
+        Some(F(a, b)) => Ok(TBoco::Co(TData::Float(a.min(b)))),
+        Some(I(a, b)) => Ok(TBoco::Co(TData::Int(a.min(b)))),
+        _ => e_str("Can only min numbers"),
+    })
+}
+pub fn max<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+    fold(l, |a, b| match num_match(&a, b) {
+        Some(U(a, b)) => Ok(TBoco::Co(TData::UInt(a.max(b)))),
+        Some(F(a, b)) => Ok(TBoco::Co(TData::Float(a.max(b)))),
+        Some(I(a, b)) => Ok(TBoco::Co(TData::Int(a.max(b)))),
+        _ => e_str("Can only min numbers"),
+    })
+}
