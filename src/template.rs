@@ -110,20 +110,20 @@ impl TreeItem {
             TreeItem::Comment => Ok(String::new()),
             TreeItem::Let(vec) => {
                 for (k, v) in vec {
-                    let vsolid = v.run(&scope, tm, fm)?.concrete();
+                    let vsolid = v.run(&scope, tm, fm)?.into_owned();
                     scope.set(k.to_string(), vsolid);
                 }
                 Ok(String::new())
             }
             TreeItem::Export(vec) => {
                 for (k, v) in vec {
-                    let vsolid = v.run(&scope, tm, fm)?.concrete();
+                    let vsolid = v.run(&scope, tm, fm)?.into_owned();
                     scope.set_root(k.to_string(), vsolid);
                 }
                 Ok(String::new())
             }
             TreeItem::Return(pipe) => {
-                let psolid = pipe.run(&scope, tm, fm)?.concrete();
+                let psolid = pipe.run(&scope, tm, fm)?.into_owned();
                 scope.set_root("return".to_string(), psolid);
                 Ok(String::new())
             }
@@ -132,7 +132,7 @@ impl TreeItem {
                 Ok(pres.to_string())
             }
             TreeItem::If { cond, yes, no } => {
-                let pres = cond.run(&scope, tm, fm).unwrap_or(TBoco::Co(TData::Null));
+                let pres = cond.run(&scope, tm, fm).unwrap_or(TCow::Owned(TData::Null));
                 match pres.as_bool() {
                     Some(true) => run_block(yes, scope, tm, fm),
                     _ => {
@@ -145,7 +145,7 @@ impl TreeItem {
                 }
             }
             TreeItem::For { k, v, p, b } => {
-                let looper = p.run(scope, tm, fm)?.concrete();
+                let looper = p.run(scope, tm, fm)?.into_owned();
                 let mut res = String::new();
                 match looper {
                     TData::Map(m) => {
@@ -192,7 +192,7 @@ impl TreeItem {
                 if params.len() == 0 {
                     return Ok(expr::run_values::<TM, FM>(
                         command,
-                        &vec![TBoco::Co(TData::String(ch))],
+                        &vec![TCow::Owned(TData::String(ch))],
                         tm,
                         fm,
                     )?
@@ -227,7 +227,7 @@ impl TreeItem {
                 let mut s_params = Vec::new();
                 for p in params {
                     match p.run(scope, tm, fm) {
-                        Ok(v) => s_params.push(v.concrete()),
+                        Ok(v) => s_params.push(v.into_owned()),
                         Err(_) => break,
                     }
                 }
@@ -296,7 +296,7 @@ impl TreeTemplate {
                 }
                 TreeItem::Export(vec) => {
                     for (k, v) in vec {
-                        match v.run(&scope, &mut NoTemplates, fm).map(|v| v.concrete()) {
+                        match v.run(&scope, &mut NoTemplates, fm).map(|v| v.into_owned()) {
                             Ok(val) => scope.set_root(k.to_string(), val),
                             Err(_) => {}
                         }

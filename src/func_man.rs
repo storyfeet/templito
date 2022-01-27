@@ -4,8 +4,8 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use tparam::*;
 
-pub type TFunc = dyn for<'a> Fn(&[TBoco<'a>]) -> anyhow::Result<TBoco<'a>>;
-pub type TFn = for<'a> fn(&[TBoco<'a>]) -> anyhow::Result<TBoco<'a>>;
+pub type TFunc = dyn for<'a> Fn(&[TCow<'a>]) -> anyhow::Result<TCow<'a>>;
+pub type TFn = for<'a> fn(&[TCow<'a>]) -> anyhow::Result<TCow<'a>>;
 
 pub trait FuncManager {
     fn get_func(&self, k: &str) -> Option<&TFunc>;

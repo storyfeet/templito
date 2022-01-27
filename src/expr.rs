@@ -1,4 +1,3 @@
-use crate::boco::*;
 use crate::func_man::FuncManager;
 use crate::scope::Scope;
 use crate::tdata::*;
@@ -32,10 +31,10 @@ pub enum Expr {
 
 pub fn run_values<'a, TM: TempManager, FM: FuncManager>(
     cname: &str,
-    args: &[TBoco<'a>],
+    args: &[TCow<'a>],
     tm: &mut TM,
     fm: &FM,
-) -> anyhow::Result<TBoco<'a>> {
+) -> anyhow::Result<TCow<'a>> {
     if let Some(in_f) = fm.get_func(&cname) {
         return Ok(in_f(&args)?);
     }
@@ -47,9 +46,9 @@ pub fn run_values<'a, TM: TempManager, FM: FuncManager>(
             }
             let (s, mut mp) = in_tp.run_exp(&v2, tm, fm)?;
             if let Some(v) = mp.remove("return") {
-                return b_ok(v);
+                return Ok(TCow::Owned(v));
             }
-            b_ok(TData::String(s))
+            Ok(TCow::Owned(TData::String(s)))
         }
         Err(e) => e_string(format!("Getting template {}, {}", cname, e)),
     }
@@ -61,7 +60,7 @@ pub fn run_command<'a, TM: TempManager, FM: FuncManager>(
     scope: &'a Scope,
     tm: &mut TM,
     fm: &FM,
-) -> anyhow::Result<TBoco<'a>> {
+) -> anyhow::Result<TCow<'a>> {
     if cname == "run" {
         let mut tds = Vec::new();
         for p in args {
@@ -76,9 +75,9 @@ pub fn run_command<'a, TM: TempManager, FM: FuncManager>(
             if let TData::Template(t) = tp.deref() {
                 let (s, mut mp) = t.run_exp(&v, tm, fm)?;
                 if let Some(v) = mp.remove("return") {
-                    return b_ok(v);
+                    return Ok(TCow::Owned(v));
                 }
-                return b_ok(TData::String(s));
+                return Ok(TCow::Owned(TData::String(s)));
             }
         }
     }
@@ -90,7 +89,7 @@ pub fn run_command<'a, TM: TempManager, FM: FuncManager>(
                 }
             }
         }
-        return b_ok(TData::Null);
+        return Ok(TCow::Owned(TData::Null));
     }
     if cname == "select" {
         if args.len() < 3 {
@@ -125,26 +124,26 @@ impl Expr {
         scope: &'a Scope,
         tm: &mut TM,
         fm: &FM,
-    ) -> anyhow::Result<TBoco<'a>> {
+    ) -> anyhow::Result<TCow<'a>> {
         match self {
-            Expr::Lit(v) => Ok(TBoco::Bo(v)),
+            Expr::Lit(v) => Ok(TCow::Borrowed(v)),
             Expr::Var(v) => scope.get(v).e_string(format!("No Var by the name {:?}", v)),
             Expr::Command(c, pars) => run_command(c, pars, scope, tm, fm),
             Expr::List(v) => {
-                let mut res = Vec::new();
+                let mut res: Vec<TData> = Vec::new();
                 for c in v {
                     let r = c.run(scope, tm, fm)?;
-                    res.push(r.concrete());
+                    res.push(r.into_owned());
                 }
-                b_ok(TData::List(res))
+                Ok(TCow::Owned(TData::List(res)))
             }
             Expr::Map(m) => {
                 let mut res = std::collections::HashMap::new();
                 for (k, v) in m {
                     let r = v.run(scope, tm, fm)?;
-                    res.insert(k.clone(), r.concrete());
+                    res.insert(k.clone(), r.into_owned());
                 }
-                b_ok(TData::Map(res))
+                Ok(TCow::Owned(TData::Map(res)))
             }
         }
     }

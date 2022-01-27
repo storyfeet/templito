@@ -63,15 +63,15 @@
 //! "TData" Is the main enum that holds the possible types for passing around, including
 //! String, Bool, Int, Uint,Float,Map<String,TData>,List<TData>
 //!
-//! "TBoco" Is a Borrow/Concrete type allowing types that can return a borrow to do so.
+//! "TCow" Is a Borrow/Concrete type allowing types that can return a borrow to do so.
 //! While those that must create their responce to do that too.  This means big lists and complex
 //! types can avoid being copied in many places.
 //!
 //! Helper Functions have to follow one of the following signatures:
 //!
 //! ```ignore
-//! type TFunc = dyn Fn(&[TBoco<'a>]) -> Result<TBoco<'a>>;
-//! type TFn = fn'a(_: &[TBoco<'a>]) -> Result<TBoco<'a>>;
+//! type TFunc = dyn Fn(&[TCow<'a>]) -> Result<TCow<'a>>;
+//! type TFn = fn'a(_: &[TCow<'a>]) -> Result<TCow<'a>>;
 //!
 //! ```
 //! and can be added to BasicFuncs using
@@ -79,7 +79,6 @@
 //!
 //!
 
-pub mod boco;
 pub mod func_man;
 pub mod funcs;
 pub mod parse;
