@@ -1,12 +1,11 @@
 use super::*;
-use boco::*;
 use err_tools::*;
 use rand::prelude::*;
 use std::ops::Deref;
 use tdata::*;
 use tparam::*;
 
-pub fn get_rand<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn get_rand<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     let mut rg = rand::thread_rng();
     if args.len() == 0 {
         return b_ok(TData::Float(rg.gen()));
@@ -30,7 +29,7 @@ pub fn get_rand<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
                 e_str("Could not select random from empty list")
             } else {
                 let n = rg.gen_range(0, l.len());
-                Ok(TBoco::Co(l[n].clone()))
+                Ok(TCow::Owned(l[n].clone()))
             }
         }
         _ => e_str("Could not gen random"),

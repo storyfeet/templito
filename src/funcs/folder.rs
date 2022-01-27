@@ -1,6 +1,5 @@
 use super::WithFuncs;
 use crate::*;
-use boco::*;
 use err_tools::*;
 use func_man::*;
 use image::GenericImageView;
@@ -19,7 +18,7 @@ pub fn safe_path(p: &Path, s: &str) -> Option<PathBuf> {
     None
 }
 
-fn do_dir<'a, P: AsRef<Path>>(p: P) -> anyhow::Result<TBoco<'a>> {
+fn do_dir<'a, P: AsRef<Path>>(p: P) -> anyhow::Result<TCow<'a>> {
     let mut res = Vec::new();
     for r in std::fs::read_dir(p)?.filter_map(|s| s.ok()) {
         let p = r.path();
@@ -72,7 +71,7 @@ pub fn dir(pb: PathBuf) -> Box<TFunc> {
         let mut v = Vec::new();
         for d in l {
             let sp = safe_path(&pb, &d.to_string()).e_str("Broken File path")?;
-            v.push(do_dir(&sp)?.concrete());
+            v.push(do_dir(&sp)?.into_owned());
         }
         b_ok(TData::List(v))
     })
@@ -129,7 +128,7 @@ pub fn scan_dir(pb: PathBuf) -> Box<TFunc> {
 
         do_scan_dir(&sp, &PathBuf::new(), &fm, dp, &mut res, filter.as_ref())?;
 
-        Ok(TBoco::Co(TData::List(res)))
+        Ok(TCow::Owned(TData::List(res)))
     })
 }
 

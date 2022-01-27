@@ -1,5 +1,4 @@
 use crate::*;
-use boco::*;
 use err_tools::*;
 use std::path::{Path, PathBuf};
 use tparam::*;
@@ -8,7 +7,7 @@ fn path_dat<'a>(p: &Path) -> TData {
     TData::String(p.display().to_string())
 }
 
-fn join_args<'a>(args: &[TBoco<'a>]) -> PathBuf {
+fn join_args<'a>(args: &[TCow<'a>]) -> PathBuf {
     let mut path = PathBuf::new();
     for v in args {
         path.push(v.to_string());
@@ -16,7 +15,7 @@ fn join_args<'a>(args: &[TBoco<'a>]) -> PathBuf {
     path
 }
 
-pub fn parent<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn parent<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     if let Some(p) = join_args(args).parent() {
         b_ok(TData::String(p.display().to_string()))
     } else {
@@ -24,11 +23,11 @@ pub fn parent<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     }
 }
 
-pub fn join<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn join<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     b_ok(path_dat(&join_args(args)))
 }
 
-pub fn bread_crumbs<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn bread_crumbs<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     let mut path = join_args(args);
     let mut res = Vec::new();
     res.push(path_dat(&path));
@@ -39,14 +38,14 @@ pub fn bread_crumbs<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     b_ok(TData::List(res))
 }
 
-pub fn base_name<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn base_name<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     join_args(args)
         .file_name()
         .and_then(|v| v.to_str())
-        .map(|v| TBoco::Co(TData::String(v.to_string())))
+        .map(|v| TCow::Owned(TData::String(v.to_string())))
         .e_str("Could not get file base_name")
 }
-pub fn base_name_sure<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn base_name_sure<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     b_ok(TData::String(
         join_args(args)
             .file_name()
@@ -56,7 +55,7 @@ pub fn base_name_sure<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     ))
 }
 
-pub fn with_ext<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn with_ext<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     if args.len() < 2 {
         return e_str("'with_ext' requires a filenae then an extension");
     }
@@ -65,13 +64,13 @@ pub fn with_ext<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     b_ok(path_dat(&pe))
 }
 
-pub fn stem<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn stem<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     join_args(args)
         .file_stem()
-        .map(|s| TBoco::Co(TData::String(s.to_string_lossy().to_string())))
+        .map(|s| TCow::Owned(TData::String(s.to_string_lossy().to_string())))
         .e_str("No File to stem")
 }
-pub fn full_stem<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn full_stem<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     let j = join_args(args);
     let stem = j.file_stem().e_str("No file to stem")?;
     b_ok(TData::String(j.with_file_name(stem).display().to_string()))

@@ -1,24 +1,23 @@
 use super::*;
-use boco::*;
 use err_tools::*;
 use tdata::*;
 use tparam::*;
 
-fn units(args: &[TBoco], p: usize) -> String {
+fn units(args: &[TCow], p: usize) -> String {
     match args.get(p) {
         Some(v) => v.to_string(),
         _ => "px".to_string(),
     }
 }
 
-pub fn xy<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn xy<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     let u = units(args, 2);
     let y = args.get(1).e_str("need y")?;
     let x = args.get(0).e_str("need x")?;
     b_ok(TData::String(format!(r#"x="{}{2}" y="{}{2}""#, x, y, u)))
 }
 
-pub fn xywh<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn xywh<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     let u = units(args, 4);
     let h = args.get(3).e_str("need h")?;
     let w = args.get(2).e_str("need w")?;
@@ -30,7 +29,7 @@ pub fn xywh<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     )))
 }
 
-pub fn xy12<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn xy12<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     let u = units(args, 4);
     let y2 = args.get(3).e_str("need y2")?;
     let x2 = args.get(2).e_str("need x2")?;
@@ -42,7 +41,7 @@ pub fn xy12<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     )))
 }
 
-pub fn fl_stk<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn fl_stk<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     let u = units(args, 3);
     let sw = args.get(2).e_str("need stroke-width")?;
     let s = args.get(1).e_str("need stroke")?;
@@ -53,7 +52,7 @@ pub fn fl_stk<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     )))
 }
 
-pub fn font<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn font<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     let sz = args.get(0).e_str("Font Size not supplied")?;
     let ff = args
         .get(1)
@@ -79,7 +78,7 @@ fn _xml_es(s: &str) -> String {
     res
 }
 
-pub fn xml_esc<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn xml_esc<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     let mut res = String::new();
     for a in args {
         res.push_str(&_xml_es(&a.to_string()));

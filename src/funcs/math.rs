@@ -1,5 +1,4 @@
 use crate::*;
-use boco::*;
 use err_tools::*;
 use std::ops::Deref;
 use tdata::*;
@@ -38,16 +37,16 @@ pub fn num_match(a: &TData, b: &TData) -> Option<NumMatch> {
     })
 }
 
-pub fn add<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn add<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     fold(l, |a, b| match num_match(&a, b) {
-        Some(U(a, b)) => Ok(TBoco::Co(TData::UInt(a + b))),
-        Some(F(a, b)) => Ok(TBoco::Co(TData::Float(a + b))),
-        Some(I(a, b)) => Ok(TBoco::Co(TData::Int(a + b))),
+        Some(U(a, b)) => Ok(TCow::Owned(TData::UInt(a + b))),
+        Some(F(a, b)) => Ok(TCow::Owned(TData::Float(a + b))),
+        Some(I(a, b)) => Ok(TCow::Owned(TData::Int(a + b))),
         _ => e_str("Cannot add non numeric values"),
     })
 }
 
-pub fn sub<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn sub<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     if l.len() == 1 {
         match l[0].deref() {
             TData::UInt(n) => return b_ok(TData::Int(-(*n as isize))),
@@ -59,57 +58,57 @@ pub fn sub<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     fold(l, |a, b| match num_match(&a, b) {
         Some(U(a, b)) => {
             if a >= b {
-                Ok(TBoco::Co(TData::UInt(a - b)))
+                Ok(TCow::Owned(TData::UInt(a - b)))
             } else {
-                Ok(TBoco::Co(TData::Int(a as isize - b as isize)))
+                Ok(TCow::Owned(TData::Int(a as isize - b as isize)))
             }
         }
-        Some(F(a, b)) => Ok(TBoco::Co(TData::Float(a - b))),
-        Some(I(a, b)) => Ok(TBoco::Co(TData::Int(a - b))),
+        Some(F(a, b)) => Ok(TCow::Owned(TData::Float(a - b))),
+        Some(I(a, b)) => Ok(TCow::Owned(TData::Int(a - b))),
         _ => e_str("Cannot sub non numeric values"),
     })
 }
 
-pub fn mul<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn mul<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     fold(l, |a, b| match num_match(&a, b) {
-        Some(U(a, b)) => Ok(TBoco::Co(TData::UInt(a * b))),
-        Some(F(a, b)) => Ok(TBoco::Co(TData::Float(a * b))),
-        Some(I(a, b)) => Ok(TBoco::Co(TData::Int(a * b))),
+        Some(U(a, b)) => Ok(TCow::Owned(TData::UInt(a * b))),
+        Some(F(a, b)) => Ok(TCow::Owned(TData::Float(a * b))),
+        Some(I(a, b)) => Ok(TCow::Owned(TData::Int(a * b))),
         _ => e_str("Cannot add non numeric values"),
     })
 }
 
-pub fn div<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn div<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     fold(l, |a, b| match num_match(&a, b) {
-        Some(U(a, b)) => Ok(TBoco::Co(TData::UInt(a / b))),
-        Some(F(a, b)) => Ok(TBoco::Co(TData::Float(a / b))),
-        Some(I(a, b)) => Ok(TBoco::Co(TData::Int(a / b))),
+        Some(U(a, b)) => Ok(TCow::Owned(TData::UInt(a / b))),
+        Some(F(a, b)) => Ok(TCow::Owned(TData::Float(a / b))),
+        Some(I(a, b)) => Ok(TCow::Owned(TData::Int(a / b))),
         _ => e_str("Cannot add non numeric values"),
     })
 }
 
-pub fn modulo<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn modulo<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     fold(l, |a, b| match num_match(&a, b) {
-        Some(U(a, b)) => Ok(TBoco::Co(TData::UInt(a % b))),
-        Some(F(a, b)) => Ok(TBoco::Co(TData::Float(a % b))),
-        Some(I(a, b)) => Ok(TBoco::Co(TData::Int(a % b))),
+        Some(U(a, b)) => Ok(TCow::Owned(TData::UInt(a % b))),
+        Some(F(a, b)) => Ok(TCow::Owned(TData::Float(a % b))),
+        Some(I(a, b)) => Ok(TCow::Owned(TData::Int(a % b))),
         _ => e_str("Cannot add non numeric values"),
     })
 }
 
-pub fn min<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn min<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     fold(l, |a, b| match num_match(&a, b) {
-        Some(U(a, b)) => Ok(TBoco::Co(TData::UInt(a.min(b)))),
-        Some(F(a, b)) => Ok(TBoco::Co(TData::Float(a.min(b)))),
-        Some(I(a, b)) => Ok(TBoco::Co(TData::Int(a.min(b)))),
+        Some(U(a, b)) => Ok(TCow::Owned(TData::UInt(a.min(b)))),
+        Some(F(a, b)) => Ok(TCow::Owned(TData::Float(a.min(b)))),
+        Some(I(a, b)) => Ok(TCow::Owned(TData::Int(a.min(b)))),
         _ => e_str("Can only min numbers"),
     })
 }
-pub fn max<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn max<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     fold(l, |a, b| match num_match(&a, b) {
-        Some(U(a, b)) => Ok(TBoco::Co(TData::UInt(a.max(b)))),
-        Some(F(a, b)) => Ok(TBoco::Co(TData::Float(a.max(b)))),
-        Some(I(a, b)) => Ok(TBoco::Co(TData::Int(a.max(b)))),
+        Some(U(a, b)) => Ok(TCow::Owned(TData::UInt(a.max(b)))),
+        Some(F(a, b)) => Ok(TCow::Owned(TData::Float(a.max(b)))),
+        Some(I(a, b)) => Ok(TCow::Owned(TData::Int(a.max(b)))),
         _ => e_str("Can only min numbers"),
     })
 }

@@ -1,10 +1,9 @@
 use crate::*;
-use boco::*;
 use err_tools::*;
 use std::ops::Deref;
 use tparam::*;
 
-pub fn eq<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn eq<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     if l.len() == 0 {
         return e_str("Not enough args for eq");
     }
@@ -15,7 +14,7 @@ pub fn eq<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     }
     b_ok(TData::Bool(true))
 }
-pub fn eq_any<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn eq_any<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     if l.len() == 0 {
         return e_str("Not enough args for eq");
     }
@@ -26,7 +25,7 @@ pub fn eq_any<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     }
     b_ok(TData::Bool(false))
 }
-pub fn neq<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn neq<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     if l.len() == 0 {
         return e_str("Not enough args for neq");
     }
@@ -38,7 +37,7 @@ pub fn neq<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     b_ok(TData::Bool(false))
 }
 
-pub fn gt<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn gt<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     if l.len() == 0 {
         return e_str("Not enough args for eq");
     }
@@ -51,7 +50,7 @@ pub fn gt<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     b_ok(TData::Bool(true))
 }
 
-pub fn lt<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn lt<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     if l.len() == 0 {
         return e_str("Not enough args for lt");
     }
@@ -64,7 +63,7 @@ pub fn lt<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     b_ok(TData::Bool(true))
 }
 
-pub fn gte<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn gte<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     if l.len() == 0 {
         return e_str("Not enough args for gte");
     }
@@ -75,7 +74,7 @@ pub fn gte<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     }
     b_ok(TData::Bool(true))
 }
-pub fn lte<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn lte<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     if l.len() == 0 {
         return e_str("Not enough args for lte");
     }
@@ -87,7 +86,7 @@ pub fn lte<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     b_ok(TData::Bool(true))
 }
 
-pub fn and<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn and<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     for a in l {
         if let None | Some(false) = a.as_bool() {
             return b_ok(TData::Bool(false));
@@ -96,7 +95,7 @@ pub fn and<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     b_ok(TData::Bool(true))
 }
 
-pub fn nand<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn nand<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     for a in l {
         if let None | Some(false) = a.as_bool() {
             return b_ok(TData::Bool(true));
@@ -104,7 +103,7 @@ pub fn nand<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     }
     b_ok(TData::Bool(false))
 }
-pub fn or<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn or<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     for a in l {
         if let Some(true) = a.as_bool() {
             return b_ok(TData::Bool(true));
@@ -113,7 +112,7 @@ pub fn or<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     b_ok(TData::Bool(false))
 }
 
-pub fn nor<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn nor<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     for a in l {
         if let Some(true) = a.as_bool() {
             return b_ok(TData::Bool(false));
@@ -138,7 +137,7 @@ fn _type_of(td: &TData) -> &'static str {
     }
 }
 
-pub fn type_of<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn type_of<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     let r = _type_of(
         l.get(0)
             .e_str("missing params : type_of <item> <?match>")?

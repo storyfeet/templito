@@ -1,7 +1,6 @@
 use super::*;
 use crate::scope::Scope;
 use crate::temp_man::NoTemplates;
-use boco::*;
 use err_tools::*;
 use gobble::*;
 use std::cmp::Ordering;
@@ -11,12 +10,12 @@ use parse::expr::*;
 use expr::VarPart;
 use tparam::*;
 
-pub fn list<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
-    let v = args.iter().map(|b| b.clone().concrete()).collect();
+pub fn list<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
+    let v = args.iter().map(|b| b.clone().into_owned()).collect();
     b_ok(TData::List(v))
 }
 
-pub fn len<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn len<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     let mut res = 0;
     for a in args {
         match a.deref() {
@@ -28,7 +27,7 @@ pub fn len<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     b_ok(TData::UInt(res))
 }
 
-pub fn slice<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn slice<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     let start = args
         .get(1)
         .and_then(|v| v.deref().as_usize())
@@ -56,7 +55,7 @@ pub fn slice<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     b_ok(TData::List(v))
 }
 
-pub fn sort<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn sort<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     let mut res = Vec::new();
     for a in args {
         if let TData::List(l) = a.deref() {
@@ -97,7 +96,7 @@ impl Comparator {
     }
 }
 
-fn build_comparator<'a>(args: &[TBoco<'a>]) -> anyhow::Result<Vec<Comparator>> {
+fn build_comparator<'a>(args: &[TCow<'a>]) -> anyhow::Result<Vec<Comparator>> {
     let mut comps = Vec::new();
     for x in args {
         if let TData::String(s) = x.deref() {
@@ -128,7 +127,7 @@ parser! {(Compare->Comparator)
     (exists("-"),sep_plus(Var,".")).map(|(down,v)| Comparator{down,v})
 }
 
-pub fn sort_on<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn sort_on<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     if args.len() < 2 {
         return e_str("Sort requires a List<Map> and then at least one string");
     }
@@ -143,7 +142,7 @@ pub fn sort_on<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     }
 }
 
-pub fn bin_search<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn bin_search<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     if args.len() < 3 {
         return e_str("Bin Search needs a List<Map> an Item, and at least one sort criteria");
     }
@@ -154,11 +153,11 @@ pub fn bin_search<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     let comps = build_comparator(&args[2..])?;
     Ok(list
         .binary_search_by(|v| compare(&comps, v.deref(), args[1].deref()))
-        .map(|n| TBoco::Co(TData::UInt(n)))
-        .unwrap_or(TBoco::Co(TData::Null)))
+        .map(|n| TCow::Owned(TData::UInt(n)))
+        .unwrap_or(TCow::Owned(TData::Null)))
 }
 
-pub fn bin_get<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn bin_get<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     if args.len() < 3 {
         return e_str("Bin Get needs a List<Map> an Item, and at least one sort criteria");
     }
@@ -170,11 +169,11 @@ pub fn bin_get<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     let n = list.binary_search_by(|v| compare(&comps, v.deref(), args[1].deref()));
     match n {
         Ok(n) => Ok(args[n].clone()),
-        Err(_) => Ok(TBoco::Co(TData::Null)),
+        Err(_) => Ok(TCow::Owned(TData::Null)),
     }
 }
 
-pub fn get<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn get<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     let pos = match args[1].deref() {
         TData::Int(i) => TData::UInt(*i as usize),
         v => v.clone(),
@@ -184,8 +183,8 @@ pub fn get<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
         2 => match (args[0].deref(), &pos) {
             (TData::List(l), TData::UInt(u)) => Ok(l
                 .get(*u)
-                .map(|v| TBoco::Co(v.clone()))
-                .unwrap_or(TBoco::Co(TData::Null))),
+                .map(|v| TCow::Owned(v.clone()))
+                .unwrap_or(TCow::Owned(TData::Null))),
             (TData::String(s),TData::UInt(u))=>{
                 
                 let c = s.get(*u..).and_then(|s| s.chars().next()).e_str("No char at that point")?;
@@ -193,14 +192,14 @@ pub fn get<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
                 s2.push(c);
                 b_ok(TData::String(s2))
             }
-            (TData::Map(m), TData::String(s))=> Ok(m.get(s).map(|v| TBoco::Co(v.clone())).unwrap_or(TBoco::Co(TData::Null))),
+            (TData::Map(m), TData::String(s))=> Ok(m.get(s).map(|v| TCow::Owned(v.clone())).unwrap_or(TCow::Owned(TData::Null))),
             _=>e_str("get requires either List and Int or Map and String"),
         },
         _=>e_str("Get requires List and exactly 1 Position marker. Multiple markers may be allowed in the future")
     }
 }
 
-pub fn filter<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn filter<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     if args.len() < 2 {
         return e_str("Filter requires List and PipeString");
     }
@@ -224,7 +223,7 @@ pub fn filter<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     }
 }
 
-pub fn groups<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn groups<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     let n = args
         .get(0)
         .e_str("'groups' requires an int and a list")?
@@ -255,7 +254,7 @@ pub fn groups<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     b_ok(TData::List(res))
 }
 
-pub fn append<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn append<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     let mut res = Vec::new();
     for a in args {
         match a.deref() {

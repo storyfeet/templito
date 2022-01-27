@@ -1,6 +1,5 @@
 use super::WithFuncs;
 use crate::*;
-use boco::*;
 use err_tools::*;
 use func_man::*;
 use std::collections::HashMap;
@@ -11,7 +10,7 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use tparam::*;
 
-fn do_dir<'a, P: AsRef<Path>>(p: P) -> anyhow::Result<TBoco<'a>> {
+fn do_dir<'a, P: AsRef<Path>>(p: P) -> anyhow::Result<TCow<'a>> {
     let mut res = Vec::new();
     for r in std::fs::read_dir(p)?.filter_map(|s| s.ok()) {
         let p = r.path();
@@ -22,7 +21,7 @@ fn do_dir<'a, P: AsRef<Path>>(p: P) -> anyhow::Result<TBoco<'a>> {
     b_ok(TData::List(res))
 }
 
-pub fn is_file<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn is_file<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     for d in args {
         match std::fs::metadata(&d.to_string()) {
             Ok(md) => {
@@ -36,7 +35,7 @@ pub fn is_file<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     return b_ok(TData::Bool(true));
 }
 
-pub fn is_dir<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn is_dir<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     for d in args {
         match std::fs::metadata(&d.to_string()) {
             Ok(md) => {
@@ -50,18 +49,18 @@ pub fn is_dir<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     return b_ok(TData::Bool(true));
 }
 
-pub fn dir<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn dir<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     if args.len() == 1 {
         return do_dir(&args[0].to_string());
     }
     let mut v = Vec::new();
     for d in args {
-        v.push(do_dir(&d.to_string())?.concrete());
+        v.push(do_dir(&d.to_string())?.into_owned());
     }
     b_ok(TData::List(v))
 }
 
-pub fn file<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn file<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     let mut res = String::new();
     for d in args {
         let mut f = std::fs::File::open(d.to_string())?;
@@ -70,7 +69,7 @@ pub fn file<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     b_ok(TData::String(res))
 }
 
-pub fn file_bytes<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn file_bytes<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     let mut res = Vec::new();
     for d in args {
         let mut f = std::fs::File::open(d.to_string())?;
@@ -79,7 +78,7 @@ pub fn file_bytes<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     b_ok(TData::Bytes(res))
 }
 
-pub fn file_img_dimensions<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn file_img_dimensions<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     if let TData::String(d) = args.get(0).e_str("file_img_dimensions needs path")?.deref() {
         let img = imagesize::size(d.to_string())?;
         let mut map = HashMap::new();
@@ -90,7 +89,7 @@ pub fn file_img_dimensions<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> 
     e_str("file_img_dimensions path should be string")
 }
 
-pub fn scan_dir<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn scan_dir<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     let fm = BasicFuncs::new().with_defaults();
     let folder = args.get(0).e_str("Folder Needed to scan")?.to_string();
     let dp = args.get(1).and_then(|v| v.as_usize()).unwrap_or(0);
@@ -108,7 +107,7 @@ pub fn scan_dir<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
         filter.as_ref(),
     )?;
 
-    Ok(TBoco::Co(TData::List(res)))
+    Ok(TCow::Owned(TData::List(res)))
 }
 
 fn do_scan_dir(
@@ -168,7 +167,7 @@ fn do_scan_dir(
     Ok(())
 }
 
-pub fn write<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn write<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     if args.len() < 2 {
         return e_str("write requires path and contents");
     }

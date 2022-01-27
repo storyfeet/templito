@@ -1,9 +1,9 @@
-use crate::boco::Boco;
 use crate::expr::Expr;
 use crate::func_man::FuncManager;
 use crate::scope::Scope;
 use crate::tdata::*;
 use crate::temp_man::TempManager;
+use std::borrow::Cow;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Pattern {
@@ -54,7 +54,7 @@ impl Pattern {
             Pattern::Filter(f) => {
                 scope.push();
                 scope.set("@".to_string(), d.clone());
-                let res = f.run(scope, tm, fm).map(Boco::concrete);
+                let res = f.run(scope, tm, fm).map(Cow::into_owned);
                 scope.pop();
                 match res {
                     Ok(TData::Bool(true)) => true,

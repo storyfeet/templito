@@ -6,12 +6,12 @@ use parse::expr::BasicData;
 use std::collections::HashMap;
 use std::ops::Deref;
 use tparam::*;
-pub fn r_json<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn r_json<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     let s = l.iter().next().e_str("r_json requires a string argument")?;
     if let TData::String(s) = s.deref() {
         return BasicData
             .parse_s(s)
-            .map(|v| TBoco::Co(v))
+            .map(|v| TCow::Owned(v))
             .map_err(|e| e.strung().into());
     }
     e_str("r_json requires a single string argument")
@@ -36,11 +36,11 @@ fn cdata_to_tdata(cd: &CData) -> TData {
     }
 }
 
-pub fn r_card<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn r_card<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     let s = l.iter().next().e_str("r_json requires a string argument")?;
     if let TData::String(s) = s.deref() {
         return card_format::parse_cards(s)
-            .map(|cs| TBoco::Co(TData::List(cs.iter().map(card_to_tdata).collect())))
+            .map(|cs| TCow::Owned(TData::List(cs.iter().map(card_to_tdata).collect())))
             .map_err(|e| e.into());
     }
     e_str("r_json requires a single string argument")

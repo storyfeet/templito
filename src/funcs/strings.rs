@@ -1,11 +1,10 @@
 use crate::*;
-use boco::*;
 use err_tools::*;
 use pulldown_cmark as mdown;
 use std::ops::Deref;
 use tparam::*;
 
-pub fn cat<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn cat<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     let mut r_str = String::new();
     for v in l {
         match v.deref() {
@@ -13,10 +12,10 @@ pub fn cat<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
             r => r_str.push_str(&r.to_string()),
         }
     }
-    Ok(TBoco::Co(TData::String(r_str)))
+    Ok(TCow::Owned(TData::String(r_str)))
 }
 
-pub fn split<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn split<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     if l.len() == 0 {
         return e_str("Nothing to split");
     }
@@ -25,7 +24,7 @@ pub fn split<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
         .as_str()
         .e_str("To split Must be a string")
         .map(|v| {
-            TBoco::Co(TData::List(
+            TCow::Owned(TData::List(
                 v.split(splitter)
                     .map(|s| TData::String(s.to_string()))
                     .collect(),
@@ -33,7 +32,7 @@ pub fn split<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
         })
 }
 
-pub fn contains<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn contains<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     if args.len() < 2 {
         return e_str("'contains' requires a string and then a list of potential substrings");
     }
@@ -46,7 +45,7 @@ pub fn contains<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     b_ok(TData::Bool(false))
 }
 
-pub fn replace<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn replace<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     if args.len() < 3 {
         return e_str("'replace' requires a string then substr to replace with substr");
     }
@@ -56,7 +55,7 @@ pub fn replace<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
             .replace(&args[1].to_string(), &args[2].to_string()),
     ))
 }
-pub fn replace_n<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn replace_n<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     if args.len() < 3 {
         return e_str("'replace' requires a string then substr to replace with substr");
     }
@@ -68,7 +67,7 @@ pub fn replace_n<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     )))
 }
 
-pub fn md<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn md<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     let mut r_str = String::new();
     for s in l {
         let pops = mdown::Options::all();
@@ -76,10 +75,10 @@ pub fn md<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
         let p = mdown::Parser::new_ext(&s, pops);
         mdown::html::push_html(&mut r_str, p);
     }
-    Ok(TBoco::Co(TData::String(r_str)))
+    Ok(TCow::Owned(TData::String(r_str)))
 }
 
-pub fn html_esc<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn html_esc<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     let mut res = String::new();
     for a in args {
         for c in a.to_string().chars() {
@@ -93,10 +92,10 @@ pub fn html_esc<'a>(args: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
             }
         }
     }
-    Ok(TBoco::Co(TData::String(res)))
+    Ok(TCow::Owned(TData::String(res)))
 }
 
-pub fn table<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn table<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     if l.len() == 0 {
         return e_str("Table requires 1 or two string entries.");
     }
@@ -104,10 +103,10 @@ pub fn table<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
         Some(v) => v.to_string(),
         None => String::new(),
     };
-    super::table::table(&l[0].to_string(), &tdata).map(|s| TBoco::Co(TData::String(s)))
+    super::table::table(&l[0].to_string(), &tdata).map(|s| TCow::Owned(TData::String(s)))
 }
 
-pub fn regex<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn regex<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     if l.len() < 2 {
         return e_str("Regex test requires String , Regex_String");
     }
@@ -163,7 +162,7 @@ fn _word_wrap(s: &str, len: usize) -> Vec<String> {
     res
 }
 
-pub fn word_wrap<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn word_wrap<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     if l.len() < 2 {
         return e_str("'word_wrap' requires string and wrap_length");
     }
@@ -176,7 +175,7 @@ pub fn word_wrap<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
     ));
 }
 
-pub fn debug<'a>(l: &[TBoco<'a>]) -> anyhow::Result<TBoco<'a>> {
+pub fn debug<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     for a in l {
         eprintln!("{}", a);
     }

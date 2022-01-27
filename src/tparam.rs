@@ -8,6 +8,9 @@ use expr::VarPart;
 
 pub type TBop<'a> = Option<TCow<'a>>;
 pub type TCow<'a> = Cow<'a, TData>;
+pub fn b_ok(d: TData) -> anyhow::Result<TCow<'static>> {
+    Ok(Cow::Owned(d))
+}
 
 pub trait TParam: Debug {
     fn get_v<'a>(&'a self, s: &[VarPart]) -> TBop<'a>;
