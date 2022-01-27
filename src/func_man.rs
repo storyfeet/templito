@@ -12,31 +12,44 @@ pub trait FuncManager {
 }
 
 pub trait FuncAdder: Sized {
-    fn add_func<K: Into<String>>(&mut self, k: K, f: Box<TFunc>);
-    fn add_fn<K: Into<String>>(&mut self, k: K, f: TFn) {
-        self.add_func(k, Box::new(f));
+    fn add_func<K: Into<String>>(&mut self, k: K, f: Box<TFunc>, description: &'static str);
+    fn add_fn<K: Into<String>>(&mut self, k: K, f: TFn, d: &'static str) {
+        self.add_func(k, Box::new(f), d);
     }
-    fn with_func<K: Into<String>>(mut self, k: K, f: Box<TFunc>) -> Self {
-        self.add_func(k, f);
+    fn with_func<K: Into<String>>(mut self, k: K, f: Box<TFunc>, d: &'static str) -> Self {
+        self.add_func(k, f, d);
         self
     }
-    fn with_fn<K: Into<String>>(mut self, k: K, f: TFn) -> Self {
-        self.add_fn(k, f);
+    fn with_fn<K: Into<String>>(mut self, k: K, f: TFn, d: &'static str) -> Self {
+        self.add_fn(k, f, d);
         self
     }
 }
 
-pub type BasicFuncs = HashMap<String, Box<TFunc>>;
+pub struct BasicFuncs {
+    funcs: HashMap<String, Box<TFunc>>,
+    descriptions: HashMap<String, &'static str>,
+}
+
+impl BasicFuncs {
+    pub fn new() -> Self {
+        BasicFuncs {
+            funcs: HashMap::new(),
+            descriptions: HashMap::new(),
+        }
+    }
+}
 
 impl FuncManager for BasicFuncs {
     fn get_func(&self, k: &str) -> Option<&TFunc> {
-        self.get(k).map(|r| &**r)
+        self.funcs.get(k).map(|r| &**r)
     }
 }
 
 impl FuncAdder for BasicFuncs {
-    fn add_func<K: Into<String>>(&mut self, k: K, f: Box<TFunc>) {
-        self.insert(k.into(), f);
+    fn add_func<K: Into<String>>(&mut self, k: K, f: Box<TFunc>, description: &'static str) {
+        self.funcs.insert(k.into(), f);
+        self.descriptions.insert(k.into(), description);
     }
 }
 

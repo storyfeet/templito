@@ -21,9 +21,9 @@ mod table;
 mod write;
 
 pub trait WithFuncs: Sized {
-    fn with_f<K: Into<String>>(self, k: K, f: Box<TFunc>) -> Self;
-    fn with_fn<K: Into<String>>(self, k: K, f: TFn) -> Self {
-        self.with_f(k, Box::new(f))
+    fn with_f<K: Into<String>>(self, k: K, f: Box<TFunc>, d: &'static str) -> Self;
+    fn with_fn<K: Into<String>>(self, k: K, f: TFn, d: &'static str) -> Self {
+        self.with_f(k, Box::new(f), d)
     }
 
     fn with_defaults(self) -> Self {
@@ -40,39 +40,71 @@ pub trait WithFuncs: Sized {
     }
 
     fn with_bytes(self) -> Self {
-        self.with_fn("as_base64", bytes::as_base64)
-            .with_fn("from_base64", bytes::from_base64)
+        self.with_fn("as_base64", bytes::as_base64, "Convert a number to base 64")
+            .with_fn(
+                "from_base64",
+                bytes::from_base64,
+                "Convert a to a number from base 64 string",
+            )
     }
 
     fn with_rand(self) -> Self {
-        self.with_fn("rand", random::get_rand)
+        self.with_fn(
+            "rand",
+            random::get_rand,
+            "Get a random number or item from list",
+        )
     }
     fn with_svg(self) -> Self {
-        self.with_fn("xy", svg::xy)
-            .with_fn("xywh", svg::xywh)
-            .with_fn("xy12", svg::xy12)
-            .with_fn("fl_stk", svg::fl_stk)
-            .with_fn("xml_esc", svg::xml_esc)
-            .with_fn("font", svg::font)
+        self.with_fn("xy", svg::xy, "set svg x and y values")
+            .with_fn("xywh", svg::xywh, "set svg x,y,width and hight values")
+            .with_fn("xy12", svg::xy12, "set svg x,y,x2 and y2 values")
+            .with_fn("fl_stk", svg::fl_stk, "set svg fill and stroke values")
+            .with_fn("xml_esc", svg::xml_esc, "escape an xml string")
+            .with_fn("font", svg::font, "set svg font")
     }
     fn with_maps(self) -> Self {
-        self.with_fn("map", maps::map)
+        self.with_fn("map", maps::map, "build map from list of key then value")
     }
 
     fn with_format(self) -> Self {
-        self.with_fn("r_json", format::r_json)
-            .with_fn("r_card", format::r_card)
+        self.with_fn("r_json", format::r_json, "read json string data to value")
+            .with_fn(
+                "r_card",
+                format::r_card,
+                "read card_format data to list of values",
+            )
     }
 
     fn with_lists(self) -> Self {
-        self.with_fn("list", lists::list)
-            .with_fn("sort", lists::sort)
-            .with_fn("append", lists::append)
-            .with_fn("sort_on", lists::sort_on)
-            .with_fn("bin_search", lists::bin_search)
-            .with_fn("bin_get", lists::bin_get)
-            .with_fn("get", lists::get)
-            .with_fn("filter", lists::filter)
+        self.with_fn("list", lists::list, "convert args to a single list")
+            .with_fn("sort", lists::sort, "sort list on simple value")
+            .with_fn("append", lists::append, "join all list args to single list")
+            .with_fn(
+                "sort_on",
+                lists::sort_on,
+                "sort list by criteria (list,criteria ...)->list",
+            )
+            .with_fn(
+                "bin_search",
+                lists::bin_search,
+                "search sorted list for comparator (list,criteria)->location",
+            )
+            .with_fn(
+                "bin_get",
+                lists::bin_get,
+                "get item from list by criteria (list,criteria)->value ",
+            )
+            .with_fn(
+                "get",
+                lists::get,
+                "get item from list by index (list,index)->value",
+            )
+            .with_fn(
+                "filter",
+                lists::filter,
+                "filter list by criteria (list,criteria)->list",
+            )
             .with_fn("len", lists::len)
             .with_fn("slice", lists::slice)
             .with_fn("groups", lists::groups)
@@ -167,7 +199,7 @@ pub trait WithFuncs: Sized {
 }
 
 impl<FA: FuncAdder> WithFuncs for FA {
-    fn with_f<K: Into<String>>(self, k: K, f: Box<TFunc>) -> Self {
-        self.with_func(k, f)
+    fn with_f<K: Into<String>>(self, k: K, f: Box<TFunc>, d: &'static str) -> Self {
+        self.with_func(k, f, d)
     }
 }
