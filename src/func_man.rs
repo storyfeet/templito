@@ -1,5 +1,5 @@
 use crate::*;
-use funcs::WithFuncs;
+pub use funcs::WithFuncs;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use tparam::*;
@@ -13,9 +13,21 @@ pub trait FuncManager {
 
     fn print_all(&self) {
         self.for_each(|k, v| {
-            println!("{}", k);
+            print!("\n {}:", k);
             for sp in v.split(":") {
-                println!("  {}", sp);
+                println!("\t\t{}", sp);
+            }
+        })
+    }
+
+    fn print_filter(&self, s: &str) {
+        self.for_each(|k, v| {
+            if !k.contains(s) && !v.contains(s) {
+                return;
+            }
+            print!("\n {}:", k);
+            for sp in v.split(":") {
+                println!("\t\t{}", sp);
             }
         })
     }
