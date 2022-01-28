@@ -127,17 +127,17 @@ pub trait WithFuncs: Sized {
         .with_fn(
             "sort_on",
             lists::sort_on,
-            "(list, criteria...)->list : sort list by criteria",
+            "(list, criteria...)->list : sort list by *criteria*",
         )
         .with_fn(
             "bin_search",
             lists::bin_search,
-            "(list, criteria)->index : search sorted list for comparator must match sort criteria",
+            "(list, criteria)->index : search sorted list for comparator must match sort *criteria*",
         )
         .with_fn(
             "bin_get",
             lists::bin_get,
-            "(list, criteria)->value : search sorted list for comparator must match sort criteria",
+            "(list, criteria)->value : search sorted list for comparator must match sort *criteria*",
         )
         .with_fn(
             "get",
@@ -163,42 +163,118 @@ pub trait WithFuncs: Sized {
     }
 
     fn with_strings(self) -> Self {
-        self.with_fn("cat", strings::cat)
-            .with_fn("md", strings::md)
-            .with_fn("table", strings::table)
-            .with_fn("split", strings::split)
-            .with_fn("str_contains", strings::contains)
-            .with_fn("str_replace", strings::replace)
-            .with_fn("str_replace_n", strings::replace_n)
-            .with_fn("html_esc", strings::html_esc)
-            .with_fn("regex", strings::regex)
-            .with_fn("word_wrap", strings::word_wrap)
-            .with_fn("debug", strings::debug)
+        self.with_fn(
+            "cat",
+            strings::cat,
+            "(string...)->string : Concatenate strings",
+        )
+        .with_fn(
+            "md",
+            strings::md,
+            "(string)->string process a string as markdown",
+        )
+        .with_fn(
+            "table",
+            strings::table,
+            "use *table notation* to create an html table",
+        )
+        .with_fn(
+            "split",
+            strings::split,
+            "(string,splitter)->list<string> : split string on splitter",
+        )
+        .with_fn(
+            "str_contains",
+            strings::contains,
+            "(haystack,needle...)->bool, does the haystack contain any of the needles",
+        )
+        .with_fn(
+            "str_replace",
+            strings::replace,
+            "(string,needle,replacement)->string : Replace all copies of needle with replacement",
+        )
+        .with_fn("str_replace_n", strings::replace_n,"(string, needle,replacement,?n)->string : Replace n or 1 copies of needle with replacement")
+        .with_fn("html_esc", strings::html_esc,"(string)->string : sanitize input against html security")
+        .with_fn("regex", strings::regex,"(string,regex)->bool : Does the string match the regex")
+        .with_fn("word_wrap", strings::word_wrap,"(string,width)->string : Add new lines to make sure text lines don't exceed width")
+        .with_fn("debug", strings::debug,"(value ...)->() : print something to the log")
     }
 
     fn with_math(self) -> Self {
-        self.with_fn("add", math::add)
-            .with_fn("sub", math::sub)
-            .with_fn("mul", math::mul)
-            .with_fn("div", math::div)
-            .with_fn("mod", math::modulo)
-            .with_fn("min", math::min)
-            .with_fn("max", math::max)
+        self.with_fn(
+            "add",
+            math::add,
+            "(number...)->number : Sum all the numbers",
+        )
+        .with_fn(
+            "sub",
+            math::sub,
+            "(up,down...)->number : Subtract all downs from up",
+        )
+        .with_fn(
+            "mul",
+            math::mul,
+            "(number...)->number : Multiply all the numbers",
+        )
+        .with_fn("div", math::div,"(top,bottom)->number : Divide the top by the bottom, if both are integers then result will be an integer")
+        .with_fn("mod", math::modulo,"(top,bottom...)->int : Top Modulo Bottom")
+        .with_fn("min", math::min,"(number...)->number : The lowest of the numbers")
+        .with_fn("max", math::max,"(number...)->number : The highest of the numbers")
     }
 
     fn with_bools(self) -> Self {
-        self.with_fn("eq", bools::eq)
-            .with_fn("neq", bools::neq)
-            .with_fn("eq_any", bools::eq_any)
-            .with_fn("gt", bools::gt)
-            .with_fn("gte", bools::gte)
-            .with_fn("lt", bools::lt)
-            .with_fn("lte", bools::lte)
-            .with_fn("and", bools::and)
-            .with_fn("nand", bools::nand)
-            .with_fn("or", bools::or)
-            .with_fn("nor", bools::nor)
-            .with_fn("type_of", bools::type_of)
+        self.with_fn("eq", bools::eq, "(A,B...)->bool : Does A equal all the B's")
+            .with_fn(
+                "neq",
+                bools::neq,
+                "(A,B...)->bool : Is A different to all the B's",
+            )
+            .with_fn(
+                "eq_any",
+                bools::eq_any,
+                "(A,B...)->bool : Does A equal any of the B's",
+            )
+            .with_fn(
+                "gt",
+                bools::gt,
+                "(A,B...)->bool : Is A greater than all the B's",
+            )
+            .with_fn(
+                "gte",
+                bools::gte,
+                "(A,B...)->bool : Is A greater than or equal to all the B's",
+            )
+            .with_fn(
+                "lt",
+                bools::lt,
+                "(A,B...)->bool : Is a Less than all the B's",
+            )
+            .with_fn(
+                "lte",
+                bools::lte,
+                "(A,B...)->bool : Is a Less than or equal to all the B's",
+            )
+            .with_fn("and", bools::and, "(A...)->bool : Are all the values true")
+            .with_fn(
+                "nand",
+                bools::nand,
+                "(A...)->bool : False if all values are true, with one are, equivilent to not",
+            )
+            .with_fn(
+                "or",
+                bools::or,
+                "(A...)->bool : True if any values are true",
+            )
+            .with_fn(
+                "nor",
+                bools::nor,
+                "(A...)->bool : False if any values are true",
+            )
+            .with_fn(
+                "type_of",
+                bools::type_of,
+                "(value)->string : The type of the value",
+            )
     }
 
     fn with_path(self) -> Self {
