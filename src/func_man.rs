@@ -9,6 +9,7 @@ pub type TFn = for<'a> fn(&[TCow<'a>]) -> anyhow::Result<TCow<'a>>;
 
 pub trait FuncManager {
     fn get_func(&self, k: &str) -> Option<&TFunc>;
+    fn for_each<F: Fn(&String, &str)>(&self, f: F);
 }
 
 pub trait FuncAdder: Sized {
@@ -43,6 +44,11 @@ impl BasicFuncs {
 impl FuncManager for BasicFuncs {
     fn get_func(&self, k: &str) -> Option<&TFunc> {
         self.funcs.get(k).map(|r| &**r)
+    }
+    fn for_each<F: Fn(&String, &str)>(&self, f: F) {
+        for (k, &v) in &self.descriptions {
+            f(k, v)
+        }
     }
 }
 
