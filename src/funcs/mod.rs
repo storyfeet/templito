@@ -40,74 +40,126 @@ pub trait WithFuncs: Sized {
     }
 
     fn with_bytes(self) -> Self {
-        self.with_fn("as_base64", bytes::as_base64, "Convert a number to base 64")
-            .with_fn(
-                "from_base64",
-                bytes::from_base64,
-                "Convert a to a number from base 64 string",
-            )
+        self.with_fn(
+            "as_base64",
+            bytes::as_base64,
+            "(int)->string: Convert a number to base 64",
+        )
+        .with_fn(
+            "from_base64",
+            bytes::from_base64,
+            "(string)->int:Convert a to a number from base 64 string ",
+        )
     }
 
     fn with_rand(self) -> Self {
         self.with_fn(
             "rand",
             random::get_rand,
-            "Get a random number or item from list",
+            "(?min,max)->int|(list)->value : Get a random number or item from list",
         )
     }
     fn with_svg(self) -> Self {
-        self.with_fn("xy", svg::xy, "set svg x and y values")
-            .with_fn("xywh", svg::xywh, "set svg x,y,width and hight values")
-            .with_fn("xy12", svg::xy12, "set svg x,y,x2 and y2 values")
-            .with_fn("fl_stk", svg::fl_stk, "set svg fill and stroke values")
-            .with_fn("xml_esc", svg::xml_esc, "escape an xml string")
-            .with_fn("font", svg::font, "set svg font")
+        self.with_fn(
+            "xy",
+            svg::xy,
+            "(x,y,?units)->string : set svg x and y values",
+        )
+        .with_fn(
+            "xywh",
+            svg::xywh,
+            "(x,y,w,h,?units)->string : set svg x,y,width and hight values",
+        )
+        .with_fn(
+            "xy12",
+            svg::xy12,
+            "(x,y,x2,y2,?units)->string : set svg x,y,x2 and y2 values",
+        )
+        .with_fn(
+            "fl_stk",
+            svg::fl_stk,
+            "(fill_color,stroke_color,stroke_width)->string : set svg fill and stroke values",
+        )
+        .with_fn(
+            "xml_esc",
+            svg::xml_esc,
+            "(string)->string : escape an xml string",
+        )
+        .with_fn("font", svg::font, "(string)->string : set svg font")
     }
     fn with_maps(self) -> Self {
-        self.with_fn("map", maps::map, "build map from list of key then value")
+        self.with_fn(
+            "map",
+            maps::map,
+            "(key,value,key,value, ...)->map : build map from list of key value pairs",
+        )
     }
 
     fn with_format(self) -> Self {
-        self.with_fn("r_json", format::r_json, "read json string data to value")
-            .with_fn(
-                "r_card",
-                format::r_card,
-                "read card_format data to list of values",
-            )
+        self.with_fn(
+            "r_json",
+            format::r_json,
+            "(string)->value : read json data to value, normally a map",
+        )
+        .with_fn(
+            "r_card",
+            format::r_card,
+            "(string)->map : read card_format data to list of values",
+        )
     }
 
     fn with_lists(self) -> Self {
-        self.with_fn("list", lists::list, "convert args to a single list")
-            .with_fn("sort", lists::sort, "sort list on simple value")
-            .with_fn("append", lists::append, "join all list args to single list")
-            .with_fn(
-                "sort_on",
-                lists::sort_on,
-                "sort list by criteria (list,criteria ...)->list",
-            )
-            .with_fn(
-                "bin_search",
-                lists::bin_search,
-                "search sorted list for comparator (list,criteria)->location",
-            )
-            .with_fn(
-                "bin_get",
-                lists::bin_get,
-                "get item from list by criteria (list,criteria)->value ",
-            )
-            .with_fn(
-                "get",
-                lists::get,
-                "get item from list by index (list,index)->value",
-            )
-            .with_fn(
-                "filter",
-                lists::filter,
-                "filter list by criteria (list,criteria)->list",
-            )
-            .with_fn("len", lists::len)
-            .with_fn("slice", lists::slice)
-            .with_fn("groups", lists::groups)
+        self.with_fn(
+            "list",
+            lists::list,
+            "(arg ...)->list<arg> : convert args to a single list",
+        )
+        .with_fn(
+            "sort",
+            lists::sort,
+            "(list ...)->list : combine lists and sort final list on simple value",
+        )
+        .with_fn(
+            "append",
+            lists::append,
+            "(list ...)->list : join all list args to single list",
+        )
+        .with_fn(
+            "sort_on",
+            lists::sort_on,
+            "(list, criteria...)->list : sort list by criteria",
+        )
+        .with_fn(
+            "bin_search",
+            lists::bin_search,
+            "(list, criteria)->index : search sorted list for comparator must match sort criteria",
+        )
+        .with_fn(
+            "bin_get",
+            lists::bin_get,
+            "(list, criteria)->value : search sorted list for comparator must match sort criteria",
+        )
+        .with_fn(
+            "get",
+            lists::get,
+            "(list,index)->value : get item from list by index (list,index)->value",
+        )
+        .with_fn(
+            "filter",
+            lists::filter,
+            "filter list by criteria (list,criteria)->list",
+        )
+        .with_fn("len", lists::len, "(list)->int : Length of the list")
+        .with_fn(
+            "slice",
+            lists::slice,
+            "(list|string, start,?end)->list|string : take a section of a list",
+        )
+        .with_fn(
+            "groups",
+            lists::groups,
+            "(int,list)->list<list> : break a list into groups of the given size",
+        )
     }
 
     fn with_strings(self) -> Self {
@@ -175,14 +227,42 @@ pub trait WithFuncs: Sized {
     }
 
     fn with_free_files(self) -> Self {
-        self.with_fn("dir", free_file::dir)
-            .with_fn("file", free_file::file)
-            .with_fn("file_bytes", free_file::file_bytes)
-            .with_fn("is_file", free_file::is_file)
-            .with_fn("is_dir", free_file::is_dir)
-            .with_fn("scan_dir", free_file::scan_dir)
-            .with_fn("file_img_dimensions", free_file::file_img_dimensions)
-            .with_fn("write", free_file::write)
+        self.with_fn(
+            "dir",
+            free_file::dir,
+            "(path)->list : List the contents of a directory",
+        )
+        .with_fn(
+            "file",
+            free_file::file,
+            "(path)->string : The contents of a text file",
+        )
+        .with_fn(
+            "file_bytes",
+            free_file::file_bytes,
+            "(path)->bytes : The byte contents of a file",
+        )
+        .with_fn(
+            "is_file",
+            free_file::is_file,
+            "(path)->bool : Dows the path point to a file",
+        )
+        .with_fn(
+            "is_dir",
+            free_file::is_dir,
+            "(path)->bool : Does the path point to a Directory",
+        )
+        .with_fn(
+            "scan_dir",
+            free_file::scan_dir,
+            "(path)->list : recursive list of folder ",
+        )
+        .with_fn(
+            "file_img_dimensions",
+            free_file::file_img_dimensions,
+            "(path)->map<w,h> : get width and height of an image file without reading the whole file",
+        )
+        .with_fn("write", free_file::write ,"(path,contents ...)->bool : Write the contents to the file",)
     }
 
     fn with_exec(self) -> Self {

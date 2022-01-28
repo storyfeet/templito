@@ -182,7 +182,9 @@ pub fn write<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
         .truncate(true)
         .open(sp)?;
 
-    write!(file, "{}", args[1].to_string())?;
+    for a in &args[1..] {
+        write!(file, "{}", args[1].to_string())?;
+    }
 
     b_ok(TData::String(String::new()))
 }
