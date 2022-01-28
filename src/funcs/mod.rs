@@ -278,28 +278,71 @@ pub trait WithFuncs: Sized {
     }
 
     fn with_path(self) -> Self {
-        self.with_fn("parent", path::parent)
-            .with_fn("join", path::join)
-            .with_fn("bread_crumbs", path::bread_crumbs)
-            .with_fn("base_name", path::base_name)
-            .with_fn("base_name_sure", path::base_name_sure)
-            .with_fn("with_ext", path::with_ext)
-            .with_fn("stem", path::stem)
-            .with_fn("full_stem", path::full_stem)
+        self.with_fn("parent", path::parent, "(path)->path : The parent path")
+            .with_fn("join", path::join, "(path...)->path : Join paths")
+            .with_fn(
+                "bread_crumbs",
+                path::bread_crumbs,
+                "(path)->list<path> : A list of paths for each parent of this path",
+            )
+            .with_fn(
+                "base_name",
+                path::base_name,
+                "(path)->string : Return file name within the folder Panics on empty",
+            )
+            .with_fn(
+                "base_name_sure",
+                path::base_name_sure,
+                "(path)->string : Return file name within the folder empty string on empty",
+            )
+            .with_fn(
+                "with_ext",
+                path::with_ext,
+                "(path,ext)->path : replaces the current exstension an extension to a path,ext should not have a dot ",
+            )
+            .with_fn("stem", path::stem,"(path)->string : basename without extension")
+            .with_fn("full_stem", path::full_stem,"(path)->path : file path without extension")
     }
 
     fn with_folder_lock<P: Into<PathBuf>>(self, pb: P) -> Self {
         let pb: PathBuf = pb.into();
-        self.with_f("dir", folder::dir(pb.clone()))
-            .with_f("file", folder::file(pb.clone()))
-            .with_f("file_bytes", folder::file_bytes(pb.clone()))
-            .with_f("is_file", folder::is_file(pb.clone()))
-            .with_f("is_dir", folder::is_dir(pb.clone()))
-            .with_f("scan_dir", folder::scan_dir(pb.clone()))
-            .with_f(
-                "file_img_dimensions",
-                folder::file_img_dimensions(pb.clone()),
-            )
+        self.with_f(
+            "dir",
+            folder::dir(pb.clone()),
+            "(path)->list<string> : Locked to folder : List files in folder",
+        )
+        .with_f(
+            "file",
+            folder::file(pb.clone()),
+            "(path)->string : Locked to folder : return a files string",
+        )
+        .with_f(
+            "file_bytes",
+            folder::file_bytes(pb.clone()),
+            "(path)->bytes : Locked to folder : read file as bytes",
+        )
+        .with_f(
+            "is_file",
+            folder::is_file(pb.clone()),
+            "(path)->bool : Locked to folder : Does path point to file",
+        )
+        .with_f(
+            "is_dir",
+            folder::is_dir(pb.clone()),
+            "(path)->bool : Locked to folder : Does path point to directory",
+        )
+        .with_f(
+            "scan_dir",
+            folder::scan_dir(pb.clone()),
+            "(path)->list<map> : Locked to folder :recursively scan directory",
+        )
+        .with_f(
+            "file_img_dimensions",
+            folder::file_img_dimensions(pb.clone()),
+            "(path)->map<x,y> : Locked to folder : Read img file dimensions without reading whole file"
+
+            ,
+        )
     }
 
     fn with_free_files(self) -> Self {

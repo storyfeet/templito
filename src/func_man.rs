@@ -48,8 +48,9 @@ impl FuncManager for BasicFuncs {
 
 impl FuncAdder for BasicFuncs {
     fn add_func<K: Into<String>>(&mut self, k: K, f: Box<TFunc>, description: &'static str) {
-        self.funcs.insert(k.into(), f);
-        self.descriptions.insert(k.into(), description);
+        let ks: String = k.into();
+        self.funcs.insert(ks.clone(), f);
+        self.descriptions.insert(ks, description);
     }
 }
 
