@@ -40,16 +40,19 @@ pub fn env<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     if args.len() == 0 {
         e_str("env_var needs <varname>")?;
     }
-    std::env::var(&args[0].to_string())
-        .map(|v| TCow::Owned(TData::String(v)))
-        .ok()
-        .e_str("No Var")
+    match std::env::var(&args[0].to_string()) {
+        Ok(v) => Ok(TCow::Owned(TData::String(v))),
+        Err(_) => args
+            .get(1)
+            .map(|v| v.clone())
+            .e_str("Environment Variable not found"),
+    }
 }
 
-pub fn env_maybe<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
+/*pub fn env_maybe<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     if args.len() == 0 {
         e_str("env_var needs <varname>")?;
     }
     let s = std::env::var(&args[0].to_string()).unwrap_or(String::new());
     return b_ok(TData::String(s));
-}
+}*/

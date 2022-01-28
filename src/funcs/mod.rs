@@ -342,15 +342,30 @@ pub trait WithFuncs: Sized {
     }
 
     fn with_exec(self) -> Self {
-        self.with_fn("exec", exec::exec)
-            .with_fn("exec_stdin", exec::exec_stdin)
-            .with_fn("env", exec::env)
-            .with_fn("env_maybe", exec::env_maybe)
+        self.with_fn(
+            "exec",
+            exec::exec,
+            "(command,arg...)->string : Run the command and return the string result",
+        )
+        .with_fn(
+            "exec_stdin",
+            exec::exec_stdin,
+            "(command,stdin,arg...)->string : Run the command with stdin piped to it's std in",
+        )
+        .with_fn(
+            "env",
+            exec::env,
+            "(var_name,default)->string : read environment variable, if not found, use default",
+        )
     }
 
     fn with_write_lock<P: Into<PathBuf>>(self, pb: P) -> Self {
         let pb: PathBuf = pb.into();
-        self.with_f("write", write::write(pb.clone()))
+        self.with_f(
+            "write",
+            write::write(pb.clone()),
+            "(rel_path,contents)->() : write locked within specific folder",
+        )
     }
 }
 
