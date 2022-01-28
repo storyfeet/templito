@@ -10,6 +10,15 @@ pub type TFn = for<'a> fn(&[TCow<'a>]) -> anyhow::Result<TCow<'a>>;
 pub trait FuncManager {
     fn get_func(&self, k: &str) -> Option<&TFunc>;
     fn for_each<F: Fn(&String, &str)>(&self, f: F);
+
+    fn print_all(&self) {
+        self.for_each(|k, v| {
+            println!("{}", k);
+            for sp in v.split(":") {
+                println!("  {}", sp);
+            }
+        })
+    }
 }
 
 pub trait FuncAdder: Sized {
