@@ -223,3 +223,31 @@ impl TData {
         }
     }
 }
+
+use card_format::{CData, Card};
+impl From<&Card> for TData {
+    fn from(c: &Card) -> Self {
+        let mut m = std::collections::HashMap::new();
+        m.insert("Name".to_string(), TData::String(c.name.clone()));
+        m.insert("Num".to_string(), TData::UInt(c.num));
+        for (k, v) in &c.data {
+            m.insert(k.clone(), v.into());
+        }
+        TData::Map(m)
+    }
+}
+impl From<&CData> for TData {
+    fn from(c: &CData) -> Self {
+        match c {
+            CData::S(s) | CData::R(s) => TData::String(s.clone()),
+            CData::N(n) => TData::Int(*n),
+            CData::L(l) => {
+                let mut res: Vec<TData> = Vec::new();
+                for i in l {
+                    res.push(i.into());
+                }
+                TData::List(res)
+            }
+        }
+    }
+}

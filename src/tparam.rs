@@ -124,3 +124,39 @@ impl TParam for Vec<&str> {
         }
     }
 }
+
+use card_format::{CData, Card};
+impl TParam for Card {
+    fn get_v<'a>(&'a self, s: &[VarPart]) -> TBop<'a> {
+        if s.len() == 0 {
+            return Some(Cow::Owned(self.into()));
+        }
+        let id = match &s[0] {
+            VarPart::Id(id) => id,
+            VarPart::Num(_) => return None,
+        };
+        if id == "Name" {
+            return Some(Cow::Owned(TData::String(self.name.clone())));
+        }
+        if id == "Num" {
+            return Some(Cow::Owned(TData::UInt(self.num)));
+        }
+        let prop = self.data.get(id)?;
+        prop.get_v(&s[1..])
+    }
+}
+
+impl TParam for CData {
+    fn get_v<'a>(&'a self, s: &[VarPart]) -> TBop<'a> {
+        if s.len() == 0 {
+            return Some(Cow::Owned(self.into()));
+        }
+        match (self, &s[0]) {
+            (CData::L(l), VarPart::Num(n)) => match l.get(*n) {
+                Some(child) => child.get_v(&s[1..]),
+                _ => None,
+            },
+            _ => None,
+        }
+    }
+}
