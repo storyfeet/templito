@@ -29,6 +29,17 @@ impl TParam for TData {
     }
 }
 
+impl TParam for std::collections::HashMap<String, TData> {
+    fn get_v<'a>(&'a self, l: &[VarPart]) -> TBop<'a> {
+        if l.len() == 0 {
+            return Some(Cow::Owned(TData::Map(self.clone())));
+        }
+        let id = l[0].as_str()?;
+        let prop = self.get(id)?;
+        prop.get_v(&l[1..])
+    }
+}
+
 impl TParam for toml::Value {
     fn get_v<'a>(&'a self, l: &[VarPart]) -> TBop<'a> {
         use toml::Value as TV;
@@ -131,10 +142,7 @@ impl TParam for Card {
         if s.len() == 0 {
             return Some(Cow::Owned(self.into()));
         }
-        let id = match &s[0] {
-            VarPart::Id(id) => id,
-            VarPart::Num(_) => return None,
-        };
+        let id = s[0].as_str()?;
         if id == "Name" {
             return Some(Cow::Owned(TData::String(self.name.clone())));
         }
