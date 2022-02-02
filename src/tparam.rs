@@ -39,6 +39,20 @@ impl TParam for std::collections::HashMap<String, TData> {
         prop.get_v(&l[1..])
     }
 }
+impl TParam for std::collections::HashMap<&str, TData> {
+    fn get_v<'a>(&'a self, l: &[VarPart]) -> TBop<'a> {
+        if l.len() == 0 {
+            let nmap: std::collections::HashMap<String, TData> = self
+                .into_iter()
+                .map(|(k, v)| (k.to_string(), v.clone()))
+                .collect();
+            return Some(Cow::Owned(TData::Map(nmap)));
+        }
+        let id = l[0].as_str()?;
+        let prop = self.get(id)?;
+        prop.get_v(&l[1..])
+    }
+}
 
 impl TParam for toml::Value {
     fn get_v<'a>(&'a self, l: &[VarPart]) -> TBop<'a> {
