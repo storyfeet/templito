@@ -1,4 +1,4 @@
-//! A templating library like handle_bars or gtmpl (go templates) with a few extra features.
+//! A templating library like handle_bars or gtmpl (go templates) with a efew extra features.
 //!
 //! * Closures as helper funtions.  (The reason I built this)
 //! * Multiple parameters to templates and sub templates.
@@ -93,6 +93,6 @@ pub use template::TreeTemplate;
 pub mod prelude;
 pub use funcs::WithFuncs;
 pub use tdata::TData;
-pub use tparam::TParam;
+pub use tparam::{TParam, KV};
 pub mod expr;
 mod pattern;

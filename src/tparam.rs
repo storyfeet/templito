@@ -183,8 +183,23 @@ impl TParam for CData {
     }
 }
 
-impl<A: TParam, B: TParam> TParam for (A, B) {
+impl<A: TParam, B: TParam> TParam for (&A, &B) {
     fn get_v<'a>(&'a self, s: &[VarPart]) -> TBop<'a> {
         self.0.get_v(s).or_else(|| self.1.get_v(s))
+    }
+}
+
+#[derive(Debug)]
+pub struct KV<S: Debug + AsRef<str>, T: Into<TData> + Debug + Clone>(pub S, pub T);
+
+impl<S: Debug + AsRef<str>, T: Into<TData> + Debug + Clone> TParam for KV<S, T> {
+    fn get_v<'a>(&'a self, s: &[VarPart]) -> TBop<'a> {
+        if s.len() == 0 {
+            return None;
+        }
+        if s[0].as_str()? == self.0.as_ref() {
+            return Some(Cow::Owned(self.1.clone().into()));
+        }
+        None
     }
 }
