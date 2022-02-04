@@ -182,3 +182,9 @@ impl TParam for CData {
         }
     }
 }
+
+impl<A: TParam, B: TParam> TParam for (A, B) {
+    fn get_v<'a>(&'a self, s: &[VarPart]) -> TBop<'a> {
+        self.0.get_v(s).or_else(|| self.1.get_v(s))
+    }
+}

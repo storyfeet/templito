@@ -207,6 +207,15 @@ impl TData {
         }
     }
 
+    pub fn as_float(&self) -> Option<f64> {
+        match self {
+            TData::UInt(u) => Some(*u as f64),
+            TData::Int(i) => Some(*i as f64),
+            TData::Float(f) => Some(*f),
+            _ => None,
+        }
+    }
+
     pub fn get_key_str<'a>(&'a self, k: &str) -> Option<&'a str> {
         match self {
             TData::Map(m) => match m.get(k) {
