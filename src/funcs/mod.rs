@@ -71,6 +71,11 @@ pub trait WithFuncs: Sized {
             "(x,y,w,h,?units)->string : set svg x,y,width and hight values",
         )
         .with_fn(
+            "cxyrr",
+            svg::cxyrr,
+            "(cx,cy,rx,ry,?units)->string : set svg ellipse values",
+        )
+        .with_fn(
             "xy12",
             svg::xy12,
             "(x,y,x2,y2,?units)->string : set svg x,y,x2 and y2 values",

@@ -29,6 +29,18 @@ pub fn xywh<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     )))
 }
 
+pub fn cxyrr<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
+    let u = units(args, 4);
+    let ry = args.get(3).e_str("need h")?;
+    let rx = args.get(2).e_str("need w")?;
+    let y = args.get(1).e_str("need y")?;
+    let x = args.get(0).e_str("need x")?;
+    b_ok(TData::String(format!(
+        r#"cx="{}{4}" cy="{}{4}" rx="{}{4}" ry="{}{4}""#,
+        x, y, rx, ry, u
+    )))
+}
+
 pub fn xy12<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     let u = units(args, 4);
     let y2 = args.get(3).e_str("need y2")?;
