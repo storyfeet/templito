@@ -6,7 +6,7 @@ use tparam::*;
 fn units(args: &[TCow], p: usize) -> String {
     match args.get(p) {
         Some(v) => v.to_string(),
-        _ => "px".to_string(),
+        _ => "".to_string(),
     }
 }
 
