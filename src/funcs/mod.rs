@@ -85,7 +85,11 @@ pub trait WithFuncs: Sized {
             svg::xml_esc,
             "(string)->string : escape an xml string",
         )
-        .with_fn("font", svg::font, "(string)->string : set svg font")
+        .with_fn(
+            "font",
+            svg::font,
+            "(size,?name,?units)->string : set svg font",
+        )
     }
     fn with_maps(self) -> Self {
         self.with_fn(
