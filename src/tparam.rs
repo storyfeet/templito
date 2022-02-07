@@ -29,22 +29,27 @@ impl TParam for TData {
     }
 }
 
-impl TParam for std::collections::HashMap<String, TData> {
+impl<TP: Into<TData> + Debug + Clone + TParam> TParam for std::collections::HashMap<String, TP> {
     fn get_v<'a>(&'a self, l: &[VarPart]) -> TBop<'a> {
         if l.len() == 0 {
-            return Some(Cow::Owned(TData::Map(self.clone())));
+            return Some(Cow::Owned(TData::Map(
+                self.iter()
+                    .map(|(k, v)| (k.clone(), v.clone().into()))
+                    .collect(),
+            )));
         }
         let id = l[0].as_str()?;
         let prop = self.get(id)?;
         prop.get_v(&l[1..])
     }
 }
-impl TParam for std::collections::HashMap<&str, TData> {
+
+impl<TP: Into<TData> + Debug + Clone + TParam> TParam for std::collections::HashMap<&str, TP> {
     fn get_v<'a>(&'a self, l: &[VarPart]) -> TBop<'a> {
         if l.len() == 0 {
             let nmap: std::collections::HashMap<String, TData> = self
                 .into_iter()
-                .map(|(k, v)| (k.to_string(), v.clone()))
+                .map(|(k, v)| (k.to_string(), v.clone().into()))
                 .collect();
             return Some(Cow::Owned(TData::Map(nmap)));
         }
