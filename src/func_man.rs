@@ -1,5 +1,6 @@
 use crate::*;
 pub use funcs::WithFuncs;
+use std::collections::BTreeMap;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use tparam::*;
@@ -50,14 +51,14 @@ pub trait FuncAdder: Sized {
 
 pub struct BasicFuncs {
     funcs: HashMap<String, Box<TFunc>>,
-    descriptions: HashMap<String, &'static str>,
+    descriptions: BTreeMap<String, &'static str>,
 }
 
 impl BasicFuncs {
     pub fn new() -> Self {
         BasicFuncs {
             funcs: HashMap::new(),
-            descriptions: HashMap::new(),
+            descriptions: BTreeMap::new(),
         }
     }
 }
