@@ -82,6 +82,18 @@ Depending on the security situation, you can opt in or out to allowing "exec" fu
 
 
 
+Changelog
+=========
+
+V 0.2.0
+--------
+
+Breaking Change : Functions now require a description to make documentation much easier for users of the system.
+
+Funcmanagers now also provide/require a method to provide those descriptions so they can be printed by any software that uses the system.
+
+
+
 
 
 
