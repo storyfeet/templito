@@ -183,6 +183,10 @@ impl TParam for CData {
                 Some(child) => child.get_v(&s[1..]),
                 _ => None,
             },
+            (CData::M(m), VarPart::Id(id)) => match m.get(id) {
+                Some(child) => child.get_v(&s[1..]),
+                _ => None,
+            },
             _ => None,
         }
     }

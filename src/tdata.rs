@@ -248,15 +248,10 @@ impl From<&Card> for TData {
 impl From<&CData> for TData {
     fn from(c: &CData) -> Self {
         match c {
-            CData::S(s) | CData::R(s) => TData::String(s.clone()),
+            CData::S(s) => TData::String(s.clone()),
             CData::N(n) => TData::Int(*n),
-            CData::L(l) => {
-                let mut res: Vec<TData> = Vec::new();
-                for i in l {
-                    res.push(i.into());
-                }
-                TData::List(res)
-            }
+            CData::L(l) => TData::List(l.into_iter().map(|v| v.into()).collect()),
+            CData::M(m) => TData::Map(m.into_iter().map(|(k, v)| (k.clone(), v.into())).collect()),
         }
     }
 }
