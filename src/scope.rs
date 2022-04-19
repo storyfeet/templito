@@ -7,6 +7,7 @@ use tparam::*;
 pub struct Scope<'a> {
     params: &'a [&'a dyn TParam],
     maps: Vec<HashMap<String, TData>>,
+    pnames: &'a [String],
 }
 
 impl<'a> Scope<'a> {
@@ -14,6 +15,15 @@ impl<'a> Scope<'a> {
         Scope {
             params,
             maps: vec![HashMap::new()],
+            pnames: &[],
+        }
+    }
+
+    pub fn with_pnames(params: &'a [&'a dyn TParam], pnames: &'a [String]) -> Self {
+        Scope {
+            params,
+            maps: vec![HashMap::new()],
+            pnames,
         }
     }
 
@@ -32,6 +42,11 @@ impl<'a> Scope<'a> {
                     let vpos = self.maps.len() - 1 - i;
                     if let Some(base) = self.maps[vpos].get(s) {
                         return base.get_v(&v[1..]);
+                    }
+                }
+                for (n, pn) in self.pnames.iter().enumerate() {
+                    if s == pn {
+                        return self.params.get(n)?.get_v(&v[1..]);
                     }
                 }
                 None
