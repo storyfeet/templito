@@ -7,6 +7,7 @@ use std::borrow::Cow;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Pattern {
+    Map(Vec<(String, Pattern)>),
     List(Vec<Pattern>),
     Val(TData),
     Filter(Expr),
@@ -33,6 +34,22 @@ impl Pattern {
                         }
                         if !v.match_data(&dl[n], scope, tm, fm) {
                             return false;
+                        }
+                    }
+                    true
+                }
+                _ => false,
+            },
+            Pattern::Map(mpat) => match d {
+                TData::Map(mp) => {
+                    for (k, p) in mpat {
+                        match mp.get(k) {
+                            Some(v) => {
+                                if !p.match_data(v, scope, tm, fm) {
+                                    return false;
+                                }
+                            }
+                            None => return false,
                         }
                     }
                     true

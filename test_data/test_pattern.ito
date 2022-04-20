@@ -1,0 +1,10 @@
+{{export data={name:"steve", age:23} }}
+
+{{global main}}
+{{as .data: {name,age:<a>} }}name:{{$name}},age:{{$a}}{{/as}}
+{{/global}}
+
+{{global result}}
+name:steve,age:23
+{{/global}}
+
