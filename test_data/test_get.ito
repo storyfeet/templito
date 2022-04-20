@@ -1,0 +1,10 @@
+{{#Test Get access to arrays and Patterns#}}
+{{export data = ["fish" "friends" "food"] }}
+{{global main}}
+{{get .data 0}} \
+{{as .data : [_,<b>,<c>]}}{{$c}} {{$b}}{{/as}}
+{{/global}}
+
+{{global result}}
+fish food friends
+{{/global}}

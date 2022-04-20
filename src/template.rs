@@ -49,6 +49,11 @@ pub enum TreeItem {
     AtExport(String, Block),
     Return(Expr),
     Switch(Vec<Expr>, Vec<Case>),
+    As {
+        exp: Expr,
+        pat: pattern::Pattern,
+        block: Block,
+    },
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -77,6 +82,7 @@ pub enum FlatItem {
     Return(Expr),
     Switch(Vec<Expr>),
     Case(Vec<pattern::Pattern>),
+    As(Expr, pattern::Pattern),
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -266,6 +272,16 @@ impl TreeItem {
                 }
                 return Ok(String::new());
             }
+            TreeItem::As { exp, pat, block } => {
+                scope.push();
+                let val = exp.run(scope, tm, fm)?.into_owned();
+                if pat.match_data(&val, scope, tm, fm) {
+                    let r = run_block(block, scope, tm, fm)?;
+                    scope.pop();
+                    return Ok(r);
+                }
+                return Ok(String::new());
+            }
         }
     }
 }
@@ -358,6 +374,10 @@ pub fn tt_basic<I: Iterator<Item = FlatItem>>(
                 params,
                 block,
             }
+        }
+        FlatItem::As(exp, pat) => {
+            let block = tt_name_block("as", it)?;
+            TreeItem::As { exp, pat, block }
         }
         FlatItem::Return(p) => TreeItem::Return(p),
         FlatItem::Comment => TreeItem::Comment,

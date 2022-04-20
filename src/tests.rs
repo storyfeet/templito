@@ -254,6 +254,28 @@ fn switch_can() {
     assert_eq!(res, r#"Default case"#);
 }
 
+fn test_file(fname: &std::path::Path) {
+    let f = std::fs::read_to_string(fname).unwrap();
+    let mut tm = crate::temp_man::BasicTemps::new();
+    let fm = func_man::default_func_man();
+    let base = TreeTemplate::from_str(&f).unwrap();
+    let (_, dt) = base.run_exp(&[], &mut tm, &fm).unwrap();
+    let main = tm.get_t("main").unwrap().clone();
+    let main_out = main.run(&[&dt], &mut tm, &fm).unwrap();
+    let res = tm.get_t("result").unwrap().clone();
+    let res_out = res.run(&[], &mut tm, &fm).unwrap();
+    assert_eq!(main_out, res_out);
+}
+#[test]
+fn test_files() {
+    for a in std::fs::read_dir("test_data").unwrap() {
+        let p = &a.unwrap().path();
+        println!("TESTING FILE : {:?}", p);
+        test_file(p);
+    }
+    //panic!("Could not read Dirs");
+}
+
 #[test]
 fn switch_pattern() {
     let fm = func_man::default_func_man();
