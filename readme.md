@@ -85,6 +85,11 @@ Depending on the security situation, you can opt in or out to allowing "exec" fu
 Changelog
 =========
 
+V 0.4.0
+-------
+Keyword "as" now exists which could possibly break some previous functions of the same name.
+Can now use ```{{as val:pattern}}with pattern captures here{{/as}}```
+
 V 0.2.0
 --------
 
