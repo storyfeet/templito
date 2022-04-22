@@ -48,7 +48,7 @@ pub enum TreeItem {
     AtLet(String, Block),
     AtExport(String, Block),
     Return(Expr),
-    Switch(Vec<Expr>, Vec<Case>),
+    Switch(Expr, Vec<Case>),
     As {
         exp: Expr,
         pat: pattern::Pattern,
@@ -80,7 +80,7 @@ pub enum FlatItem {
     Block(String, Vec<Expr>),
     EndBlock(String),
     Return(Expr),
-    Switch(Vec<Expr>),
+    Switch(Expr),
     Case(Vec<pattern::Pattern>),
     As(Expr, pattern::Pattern),
 }
@@ -242,33 +242,22 @@ impl TreeItem {
                 );
                 Ok(String::new())
             }
-            TreeItem::Switch(params, cases) => {
-                let mut s_params = Vec::new();
-                for p in params {
-                    match p.run(scope, tm, fm) {
-                        Ok(v) => s_params.push(v.into_owned()),
-                        Err(_) => break,
-                    }
-                }
-                'caseloop: for c in cases {
-                    scope.push();
-                    for (n, p) in c.pats.iter().enumerate() {
-                        match s_params.get(n) {
-                            Some(b) => {
-                                if !p.match_data(b, scope, tm, fm) {
-                                    scope.pop();
-                                    continue 'caseloop;
-                                }
-                            }
-                            None => {
+            TreeItem::Switch(ex, cases) => {
+                let exp = ex.run(scope, tm, fm)?.into_owned();
+                for c in cases {
+                    for p in &c.pats {
+                        scope.push();
+                        match p.match_data(&exp, scope, tm, fm) {
+                            true => {
+                                let r = run_block(&c.block, scope, tm, fm);
                                 scope.pop();
-                                continue 'caseloop;
+                                return r;
+                            }
+                            false => {
+                                scope.pop();
                             }
                         }
                     }
-                    let r = run_block(&c.block, scope, tm, fm);
-                    scope.pop();
-                    return r;
                 }
                 return Ok(String::new());
             }
@@ -386,7 +375,7 @@ pub fn tt_basic<I: Iterator<Item = FlatItem>>(
     })
 }
 pub fn tt_switch<I: Iterator<Item = FlatItem>>(
-    params: Vec<Expr>,
+    params: Expr,
     it: &mut I,
 ) -> anyhow::Result<TreeItem> {
     let mut res = Vec::new();

@@ -230,30 +230,6 @@ fn can_handle_gaps() {
     assert_eq!(res, r#"I say a ="3""#);
 }
 
-#[test]
-fn switch_can() {
-    let fm = func_man::default_func_man();
-    let tt = TreeTemplate::from_str(
-        r#"
-        {{- switch $0 $1}}
-        {{- case 3 2 -}}
-            It's 3 and 2
-        {{- case 5 -}}            
-            Something Something 5 Something
-        {{- case -}}
-            Default case
-        {{- /switch -}}
-            "#,
-    )
-    .unwrap();
-    let res = tt.run(&[&3, &2], &mut NoTemplates, &fm).unwrap();
-    assert_eq!(res, r#"It's 3 and 2"#);
-    let res = tt.run(&[&5], &mut NoTemplates, &fm).unwrap();
-    assert_eq!(res, r#"Something Something 5 Something"#);
-    let res = tt.run(&[], &mut NoTemplates, &fm).unwrap();
-    assert_eq!(res, r#"Default case"#);
-}
-
 fn test_file(fname: &std::path::Path) {
     let f = std::fs::read_to_string(fname).unwrap();
     let mut tm = crate::temp_man::BasicTemps::new();
@@ -281,12 +257,12 @@ fn switch_pattern() {
     let fm = func_man::default_func_man();
     let tt = TreeTemplate::from_str(
         r#"
-        {{- switch $0 $1}}
-        {{- case <x:?(lt @ 4)> 2 -}}
+        {{- switch [$0 (first $1 0)]}}
+        {{- case [<x:?(lt @ 4)> 2] -}}
             It's {{$x}} and 2
-        {{- case ?(eq @ 5) -}}            
+        {{- case [?(eq @ 5)] -}}            
             Something Something 5 Something
-        {{- case -}}
+        {{- case _ -}}
             Default case
         {{- /switch -}}
             "#,
@@ -296,6 +272,6 @@ fn switch_pattern() {
     assert_eq!(res, r#"It's 3 and 2"#);
     let res = tt.run(&[&5], &mut NoTemplates, &fm).unwrap();
     assert_eq!(res, r#"Something Something 5 Something"#);
-    let res = tt.run(&[], &mut NoTemplates, &fm).unwrap();
+    let res = tt.run(&[&"hello"], &mut NoTemplates, &fm).unwrap();
     assert_eq!(res, r#"Default case"#);
 }

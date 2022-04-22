@@ -42,7 +42,7 @@ parser! {(Item->FlatItem)
             (keyword("return"),wn__(Exp)).map(|(_,p)|FlatItem::Return(p)),
             (keyword("elif"),wn__(Exp)).map(|(_,p)|FlatItem::Elif(p)),
             (keyword("for"),wn_(Ident),wn_(Ident),wn_(keyword("in")),wn__(Exp)).map(|(_,k,v,_,p)| FlatItem::For(k,v,p)),
-            (keyword("switch"),star(wn__(Exp))).map(|(_,v)| FlatItem::Switch(v)),
+            (keyword("switch"), wn__(Exp)).map(|(_,v)| FlatItem::Switch(v)),
             (keyword("case"),star(wn__(pattern::Pat))).map(|(_,v)| FlatItem::Case(v)),
             (keyword("as"),wn__(Exp),":",wn__(pattern::Pat)).map(|(_,v,_,p)|FlatItem::As(v,p)),
             (keyword("define"),wn__(Ident),star(wn__(Ident))).map(|(_,n,l)|FlatItem::Define(n,l)),
