@@ -1,0 +1,15 @@
+{{export data="fish"}}
+
+{{global to_call animal -}}
+{{$animal}}
+{{- /global}}
+
+{{global main dat -}}
+    {{to_call $dat.data}}
+{{- /global}}
+
+
+{{global result -}}
+    fish
+{{- /global}}
+

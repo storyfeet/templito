@@ -303,7 +303,7 @@ impl TreeTemplate {
         fm: &FM,
     ) -> anyhow::Result<(String, HashMap<String, TData>)> {
         let mut res = String::new();
-        let mut scope = Scope::new(params);
+        let mut scope = Scope::with_pnames(params, &self.pnames);
         let mut it = (&self.v).into_iter();
         while let Some(item) = it.next() {
             res.push_str(&item.run(&mut scope, tm, fm)?);
@@ -313,7 +313,7 @@ impl TreeTemplate {
 
     //It is not considered a failure if a file has no front matter
     pub fn front_matter<FM: FuncManager>(&self, fm: &FM) -> HashMap<String, TData> {
-        let mut scope = Scope::new(&[]);
+        let mut scope = Scope::with_pnames(&[], &self.pnames);
         let mut it = (&self.v).into_iter();
         while let Some(item) = it.next() {
             match item {
