@@ -17,6 +17,18 @@ pub fn r_json<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     e_str("r_json requires a single string argument")
 }
 
+pub fn w_json<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
+    match l.len() {
+        0 => b_ok(TData::String("[]".to_string())),
+        1 => serde_json::to_string(&l[0])
+            .map(|s| TCow::Owned(TData::String(s)))
+            .map_err(|e| e.into()),
+        _ => serde_json::to_string(l)
+            .map(|s| TCow::Owned(TData::String(s)))
+            .map_err(|e| e.into()),
+    }
+}
+
 /*fn card_to_tdata(cd: &Card) -> TData {
     let mut res: HashMap<String, TData> = cd
         .data

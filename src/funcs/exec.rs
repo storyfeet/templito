@@ -23,6 +23,7 @@ pub fn exec_stdin<'a>(args: &[TCow<'a>]) -> Result<TCow<'a>, anyhow::Error> {
     let mut c = Command::new(args[0].to_string())
         .args(args[2..].into_iter().map(|v| v.to_string()))
         .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
         .spawn()?;
     match c.stdin {
         Some(ref mut i) => {

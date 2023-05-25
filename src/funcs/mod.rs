@@ -115,6 +115,11 @@ pub trait WithFuncs: Sized {
             format::r_card,
             "(string)->map : read card_format data to list of values",
         )
+        .with_fn(
+            "w_json",
+            format::w_json,
+            "(value)->string : json output of data",
+        )
     }
 
     fn with_lists(self) -> Self {

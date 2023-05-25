@@ -1,5 +1,6 @@
 use crate::funcs::math;
 use gobble::traits::*;
+use serde::ser::{Serialize, SerializeMap, SerializeSeq, Serializer};
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::fmt;
@@ -81,6 +82,39 @@ impl fmt::Display for TData {
             Template(_t) => write!(f, "TEMPLATE"),
             Date(d) => write!(f, "{}", d.format("%d/%m/%Y")),
             Bytes(b) => write!(f, "b\"{:?}\"", b),
+        }
+    }
+}
+
+impl Serialize for TData {
+    fn serialize<S>(&self, ss: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match self {
+            TData::Bool(b) => ss.serialize_bool(*b),
+            TData::String(s) => ss.serialize_str(s),
+            TData::Int(i) => ss.serialize_i64(*i as i64),
+            TData::UInt(u) => ss.serialize_u64(*u as u64),
+            TData::Float(fv) => ss.serialize_f64(*fv),
+            TData::List(l) => {
+                let mut seq = ss.serialize_seq(Some(l.len()))?;
+                for e in l {
+                    seq.serialize_element(e)?;
+                }
+                seq.end()
+            }
+            TData::Map(m) => {
+                let mut map = ss.serialize_map(Some(m.len()))?;
+                for (k, v) in m {
+                    map.serialize_entry(k, v)?;
+                }
+                map.end()
+            }
+            TData::Null => ss.serialize_none(),
+            TData::Template(_t) => ss.serialize_none(),
+            TData::Date(d) => ss.serialize_str(&d.format("%d/%m/%Y").to_string()),
+            TData::Bytes(b) => ss.serialize_bytes(b),
         }
     }
 }
