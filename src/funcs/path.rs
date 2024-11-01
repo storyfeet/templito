@@ -1,5 +1,7 @@
 use crate::*;
 use err_tools::*;
+use iter_tools::*;
+use std::ops::Deref;
 use std::path::{Path, PathBuf};
 use tparam::*;
 
@@ -25,6 +27,21 @@ pub fn parent<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
 
 pub fn join<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     b_ok(path_dat(&join_args(args)))
+}
+
+pub fn join_with<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
+    if args.len() < 2 {
+        return e_str("Expect first arg to be string, second to be list of string");
+    }
+
+    match args[1].deref() {
+        TData::List(l) => b_ok(TData::String(
+            l.iter()
+                .map(TData::to_string)
+                .join(&args[0].deref().to_string()),
+        )),
+        _ => e_str("Second arg not a list"),
+    }
 }
 
 pub fn bread_crumbs<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {

@@ -310,6 +310,11 @@ pub trait WithFuncs: Sized {
                 "(path)->string : Return file name within the folder empty string on empty",
             )
             .with_fn(
+                "join_with",
+                path::join_with,
+                "(string,[]string)->string: Join the list into a string using the first param as a separator)",
+            )
+            .with_fn(
                 "with_ext",
                 path::with_ext,
                 "(path,ext)->path : replaces the current exstension an extension to a path,ext should not have a dot ",

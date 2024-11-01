@@ -152,7 +152,7 @@ pub fn bin_search<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     };
     let comps = build_comparator(&args[2..])?;
     Ok(list
-        .binary_search_by(|v| compare(&comps, v.deref(), args[1].deref()))
+        .binary_search_by(|v| compare(&comps, v, args[1].deref()))
         .map(|n| TCow::Owned(TData::UInt(n)))
         .unwrap_or(TCow::Owned(TData::Null)))
 }
@@ -166,7 +166,7 @@ pub fn bin_get<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
         _ => return e_str("First Item must be a list"),
     };
     let comps = build_comparator(&args[2..])?;
-    let n = list.binary_search_by(|v| compare(&comps, v.deref(), args[1].deref()));
+    let n = list.binary_search_by(|v| compare(&comps, v, args[1].deref()));
     match n {
         Ok(n) => Ok(args[n].clone()),
         Err(_) => Ok(TCow::Owned(TData::Null)),
