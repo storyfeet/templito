@@ -198,6 +198,11 @@ pub trait WithFuncs: Sized {
             "(string,splitter)->list<string> : split string on splitter",
         )
         .with_fn(
+            "string_from_ints",
+            strings::string_from_ints,
+            "(int...)->string : convert the ints to char and combine as a string",
+        )
+        .with_fn(
             "str_contains",
             strings::contains,
             "(haystack,needle...)->bool, does the haystack contain any of the needles",
@@ -210,7 +215,7 @@ pub trait WithFuncs: Sized {
         .with_fn("str_replace_n", strings::replace_n,"(string, needle,replacement,?n)->string : Replace n or 1 copies of needle with replacement")
         .with_fn("html_esc", strings::html_esc,"(string)->string : sanitize input against html security")
         .with_fn("regex", strings::regex,"(string,regex)->bool : Does the string match the regex")
-        .with_fn("word_wrap", strings::word_wrap,"(string,width)->string : Add new lines to make sure text lines don't exceed width")
+        .with_fn("word_wrap", strings::word_wrap,"(string,width)->[]string : Make new string with words wrapped.  \\n is auto break, otherwise wrap on width")
         .with_fn("debug", strings::debug,"(value ...)->() : print something to the log")
     }
 

@@ -45,6 +45,17 @@ pub fn contains<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     b_ok(TData::Bool(false))
 }
 
+pub fn string_from_ints<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
+    let mut res = String::new();
+    for a in args {
+        let c = a.as_usize().map(|n| n as u32).map(char::from_u32);
+        if let Some(Some(ch)) = c {
+            res.push(ch)
+        }
+    }
+    return b_ok(TData::String(res));
+}
+
 pub fn replace<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     if args.len() < 3 {
         return e_str("'replace' requires a string then substr to replace with substr");
