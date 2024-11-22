@@ -55,6 +55,21 @@ pub fn slice<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     b_ok(TData::List(v))
 }
 
+pub fn index_of<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
+    if args.len() < 2 {
+        return e_str("index_of requires 'needle' then 'haystack'")
+    }
+    let needle = args[0].deref();
+    if let TData::List(l) = args[1].deref(){
+        for (k,v) in l.into_iter().enumerate(){
+            if v.eq(needle){
+                return b_ok(TData::UInt(k))
+            }
+        }
+    }
+    return b_ok(TData::Null)
+}
+
 pub fn sort<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     let mut res = Vec::new();
     for a in args {

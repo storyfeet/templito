@@ -153,6 +153,11 @@ pub trait WithFuncs: Sized {
             lists::bin_get,
             "(list, criteria)->value : search sorted list for comparator must match sort *criteria*",
         )
+            .with_fn(
+                "index_of",
+                lists::index_of,
+                "(item,list)->uint/null : if item in list, returns index, else returns null"
+            )
         .with_fn(
             "get",
             lists::get,
@@ -293,6 +298,16 @@ pub trait WithFuncs: Sized {
                 "type_of",
                 bools::type_of,
                 "(value)->string : The type of the value",
+            )
+            .with_fn(
+                "is_null",
+                bools::is_null,
+                "(value)->bool : Is the value null",
+            )
+            .with_fn(
+                "is_num",
+                bools::is_num,
+                "(value)->bool : Is the value a number",
             )
     }
 

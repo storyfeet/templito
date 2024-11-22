@@ -137,6 +137,22 @@ fn _type_of(td: &TData) -> &'static str {
     }
 }
 
+pub fn is_null<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
+    if l.len() == 0 {
+        return e_str("Is WHAT null? I need a parameter");
+    }
+
+    return b_ok(TData::Bool(l[0].deref().eq(&TData::Null)));
+}
+pub fn is_num<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
+    if l.len() == 0 {
+        return e_str("Is WHAT num? I need a parameter");
+    }
+    match l[0].deref() {
+        TData::UInt(_) | TData::Int(_) | TData::Float(_) => return b_ok(TData::Bool(true)),
+        _ => return b_ok(TData::Bool(false)),
+    }
+}
 pub fn type_of<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     let r = _type_of(
         l.get(0)
