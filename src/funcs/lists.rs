@@ -21,6 +21,7 @@ pub fn len<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
         match a.deref() {
             TData::List(l) => res += l.len(),
             TData::Map(m) => res += m.len(),
+            TData::String(s) => res+= s.len(),
             _ => res += 1,
         }
     }
