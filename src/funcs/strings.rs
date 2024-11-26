@@ -147,7 +147,7 @@ fn _word_wrap(s: &str, len: usize) -> Vec<String> {
                 Some(b) => {
                     res.push(s[index..b].trim().to_string());
                     index = b;
-                    count = 0;
+                    count = k - b;
                     brk = None;
                 }
                 None => {
