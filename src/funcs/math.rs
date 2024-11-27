@@ -52,7 +52,7 @@ pub fn sub<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
             TData::UInt(n) => return b_ok(TData::Int(-(*n as isize))),
             TData::Float(f) => return b_ok(TData::Float(-*f)),
             TData::Int(n) => return b_ok(TData::Int(-*n)),
-            _ => return e_str("sub onl works on numbers"),
+            _ => return e_str("sub only works on numbers"),
         }
     }
     fold(l, |a, b| match num_match(&a, b) {
@@ -74,7 +74,7 @@ pub fn mul<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
         Some(U(a, b)) => Ok(TCow::Owned(TData::UInt(a * b))),
         Some(F(a, b)) => Ok(TCow::Owned(TData::Float(a * b))),
         Some(I(a, b)) => Ok(TCow::Owned(TData::Int(a * b))),
-        _ => e_str("Cannot add non numeric values"),
+        _ => e_str("Cannot multiply non numeric values"),
     })
 }
 
@@ -83,7 +83,7 @@ pub fn div<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
         Some(U(a, b)) => Ok(TCow::Owned(TData::UInt(a / b))),
         Some(F(a, b)) => Ok(TCow::Owned(TData::Float(a / b))),
         Some(I(a, b)) => Ok(TCow::Owned(TData::Int(a / b))),
-        _ => e_str("Cannot add non numeric values"),
+        _ => e_str("Cannot divide non numeric values"),
     })
 }
 
@@ -92,7 +92,7 @@ pub fn modulo<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
         Some(U(a, b)) => Ok(TCow::Owned(TData::UInt(a % b))),
         Some(F(a, b)) => Ok(TCow::Owned(TData::Float(a % b))),
         Some(I(a, b)) => Ok(TCow::Owned(TData::Int(a % b))),
-        _ => e_str("Cannot add non numeric values"),
+        _ => e_str("Cannot take modulus non numeric values"),
     })
 }
 
@@ -109,6 +109,6 @@ pub fn max<'a>(l: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
         Some(U(a, b)) => Ok(TCow::Owned(TData::UInt(a.max(b)))),
         Some(F(a, b)) => Ok(TCow::Owned(TData::Float(a.max(b)))),
         Some(I(a, b)) => Ok(TCow::Owned(TData::Int(a.max(b)))),
-        _ => e_str("Can only min numbers"),
+        _ => e_str("Can only max numbers"),
     })
 }
