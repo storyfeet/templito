@@ -48,7 +48,7 @@ pub fn xy12<'a>(args: &[TCow<'a>]) -> anyhow::Result<TCow<'a>> {
     let y = args.get(1).e_str("need y")?;
     let x = args.get(0).e_str("need x")?;
     b_ok(TData::String(format!(
-        r#"x="{}{4}" y="{}{4}" x2="{}{4}" y2={}{4}"#,
+        r#"x="{}{4}" y="{}{4}" x2="{}{4}" y2="{}{4}""#,
         x, y, x2, y2, u
     )))
 }
